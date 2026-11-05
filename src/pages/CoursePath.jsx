@@ -62,12 +62,12 @@ export default function CoursePath() {
                 const stars = progress.completed[l.id]?.stars || 0
                 const label = `${l.title}${state === 'locked' ? ' (bloqueada)' : state === 'done' ? ' (completada)' : ''}`
                 return (
-                  <li key={l.id} style={{ '--off': `${off}px` }} className={`node-wrap ${state}`}>
+                  <li key={l.id} style={{ '--off': `${off}px` }} className={`node-wrap ${state} ${l.exam ? 'is-exam' : l.review ? 'is-review' : ''}`}>
                     {state === 'locked' ? (
                       <span className="node" aria-label={label}><LockIcon /></span>
                     ) : (
                       <Link to={`/aprender/${slug}/leccion/${l.id}`} className="node" aria-label={label}>
-                        {state === 'done' ? <CheckIcon /> : <PlayIcon />}
+                        {state === 'done' ? <CheckIcon /> : l.exam ? <TrophyIcon /> : l.review ? <ReviewIcon /> : <PlayIcon />}
                       </Link>
                     )}
                     <span className="node-title">{l.title}</span>
@@ -81,8 +81,9 @@ export default function CoursePath() {
         ))}
         {pct === 100 && (
           <div className="finish">
-            <h2>¡Terminaste Inglés A1!</h2>
+            <h2>¡Terminaste {course.title}!</h2>
             <p>Puedes repetir cualquier lección para subir tus estrellas.</p>
+            <Link to={`/aprender/${slug}/certificado`} className="btn btn-mango">Ver mi certificado</Link>
           </div>
         )}
       </div>
@@ -92,4 +93,6 @@ export default function CoursePath() {
 
 const PlayIcon = () => <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
 const CheckIcon = () => <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+const ReviewIcon = () => <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+const TrophyIcon = () => <svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v4M8 20h8" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
 const LockIcon = () => <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5" fill="currentColor" /><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="2.4" /></svg>

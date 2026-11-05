@@ -1,6 +1,6 @@
 # Nivela · Tienda de cursos con Inglés A1 interactivo
 
-Tienda de cursos (React + Vite) con un curso de **Inglés A1** por niveles: 4 unidades, 12 lecciones y ejercicios de elegir, escuchar, unir parejas, armar frases y escribir. Guarda XP, estrellas y racha por usuario.
+Tienda de cursos (React + Vite) con el curso **Inglés A1** completo: 11 unidades, 48 lecciones (37 de contenido, 10 repasos y un examen final), 222 palabras, explicaciones de gramática en español y certificado de finalización. Ejercicios de elegir, escuchar, unir parejas, armar frases y escribir. Guarda XP, estrellas y racha por usuario.
 
 ## Cómo funciona
 
@@ -42,7 +42,7 @@ npm run build
 
 ## Agregar contenido
 
-- Lecciones de inglés: `src/data/ingles-a1.js` (cada lección: 6 palabras y 3 frases).
+- Lecciones de inglés: `src/data/ingles-a1.js` (cada lección: 6 palabras, 3 frases y una explicación opcional `tip`). Los repasos y el examen se arman solos.
 - Cursos de la tienda: `src/data/courses.js`.
 
 > Nota: el plan gratis de Vercel (Hobby) es para uso no comercial. Cuando empieces a cobrar, usa Vercel Pro o Cloudflare Pages.

@@ -6,8 +6,8 @@ export const courses = [
   {
     slug: 'ingles-a1',
     title: 'Inglés A1 desde cero',
-    short: 'Saluda, preséntate, habla de tu familia y pide comida en inglés.',
-    description: 'Un curso por niveles para quien empieza de cero. Cada lección dura unos 5 minutos: escuchas, eliges, armas frases y escribes. Al terminar puedes presentarte, hablar de tu familia y tu trabajo, decir números y colores, y pedir comida.',
+    short: 'El nivel A1 completo: de saludar a contar qué hiciste el fin de semana.',
+    description: 'El nivel A1 completo para quien empieza de cero. Cada lección dura unos 5 minutos: escuchas, eliges, armas frases y escribes, con explicaciones de gramática en español. Al terminar puedes presentarte, hablar de tu rutina, comprar, pedir indicaciones y contar qué hiciste el fin de semana.',
     level: 'Principiante',
     price: 89900,
     color: 'ultra',

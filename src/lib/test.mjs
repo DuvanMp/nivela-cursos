@@ -12,13 +12,19 @@ assert.equal(normalize('¿Cómo estás?'), 'como estas')
 assert.equal(normalize("I don’t like milk"), 'i do not like milk')
 
 // Cada lección arma ejercicios válidos (se repite por el azar)
-const lessons = allLessons(inglesA1)
-assert.equal(lessons.length, 12)
-for (let round = 0; round < 40; round++) {
-  for (const l of lessons) {
-    assert.equal(l.words.length, 6, `${l.id} debe tener 6 palabras`)
+const all = allLessons(inglesA1)
+const lessons = all.filter((l) => l.words)
+assert.equal(new Set(all.map((l) => l.id)).size, all.length, 'ids de lección repetidos')
+console.log(`Curso: ${inglesA1.units.length} unidades, ${all.length} lecciones (${lessons.length} de contenido), ${lessons.length * 6} palabras`)
+for (const l of lessons) {
+  assert.equal(l.words.length, 6, `${l.id} debe tener 6 palabras`)
+  assert.equal(l.sentences.length, 3, `${l.id} debe tener 3 frases`)
+}
+for (let round = 0; round < 15; round++) {
+  for (const l of all) {
     const ex = buildLesson(l, inglesA1)
     assert.ok(ex.length >= 10, `${l.id}: pocos ejercicios`)
+    if (l.tip) assert.equal(ex[0].type, 'tip')
     for (const e of ex) {
       if (e.options) {
         assert.ok(e.options.includes(e.answer), `${e.id}: falta la respuesta`)
@@ -68,7 +74,7 @@ assert.equal(currentStreak(p, '2026-11-05'), 2)
 assert.equal(currentStreak(p, '2026-11-07'), 0)
 p = completeLesson(p, ids[2], 0, '2026-11-08')
 assert.equal(p.streak.count, 1)
-assert.equal(percent(ids, p), 25)
+assert.equal(percent(ids, p), Math.round((3 / ids.length) * 100))
 assert.equal(starsFor(2), 2)
 
 console.log('✓ Todas las pruebas pasaron')

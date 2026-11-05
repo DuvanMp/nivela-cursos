@@ -9,6 +9,7 @@ import Checkout from './pages/Checkout.jsx'
 import CoursePath from './pages/CoursePath.jsx'
 import Lesson from './pages/Lesson.jsx'
 import MyCourses from './pages/MyCourses.jsx'
+import Certificate from './pages/Certificate.jsx'
 import { useAuth } from './lib/auth.jsx'
 
 // Pide sesión iniciada; si no, manda a /entrar y vuelve después
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/mis-cursos" element={<RequireUser><MyCourses /></RequireUser>} />
         <Route path="/aprender/:slug" element={<RequireUser><CoursePath /></RequireUser>} />
         <Route path="/aprender/:slug/leccion/:lessonId" element={<RequireUser><Lesson /></RequireUser>} />
+        <Route path="/aprender/:slug/certificado" element={<RequireUser><Certificate /></RequireUser>} />
         <Route path="*" element={<main className="wrap empty"><h1>Esta página no existe</h1><a className="btn" href="/">Ver cursos</a></main>} />
       </Routes>
       {!inLesson && <Footer />}

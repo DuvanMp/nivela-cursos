@@ -42,7 +42,7 @@ export default function CourseDetail() {
                       <h3>{u.title}</h3>
                       <p>{u.goal}</p>
                     </div>
-                    <span>{u.lessons.length} lecciones</span>
+                    <span>{u.lessons.length} {u.lessons.length === 1 ? "lección" : "lecciones"}</span>
                   </li>
                 ))}
               </ol>

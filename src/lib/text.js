@@ -6,8 +6,11 @@ const CONTRACCIONES = {
   "isn't": 'is not', "aren't": 'are not', "what's": 'what is', "i've": 'i have', "can't": 'cannot',
 }
 
+const cache = new Map()
 export function normalize(s) {
-  return String(s)
+  const key = String(s)
+  if (cache.has(key)) return cache.get(key)
+  const out = key
     .toLowerCase()
     .replace(/[’`]/g, "'")
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -18,6 +21,8 @@ export function normalize(s) {
     .replace(/[^a-z0-9' ]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
+  if (cache.size < 5000) cache.set(key, out)
+  return out
 }
 
 // Palabras de una frase para el banco de palabras (sin signos de puntuación)

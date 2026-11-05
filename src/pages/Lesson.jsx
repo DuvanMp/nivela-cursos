@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useCourse } from '../lib/useCourse.js'
 import { buildLesson, check, shuffle } from '../lib/exercises.js'
 import { completeLesson, lessonState, starsFor, xpFor } from '../lib/progress.js'
-import { allLessons } from '../data/ingles-a1.js'
+import { allLessons, EXAM_MAX_MISTAKES } from '../data/ingles-a1.js'
 import { canSpeak, sounds, speak } from '../lib/media.js'
 
 export default function Lesson() {
@@ -50,7 +50,7 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
     const base = ex.id.replace(/-r$/, '')
     let q = queue
     // Un error vuelve a aparecer al final, una sola vez
-    if (result === 'wrong' && !retried.has(base)) {
+    if (result === 'wrong' && !lesson.exam && !retried.has(base)) {
       retried.add(base)
       q = [...queue, { ...ex, id: `${base}-r`, options: ex.options && shuffle(ex.options), bank: ex.bank && shuffle(ex.bank) }]
       setQueue(q)
@@ -64,6 +64,12 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
   }
 
   const finish = async () => {
+    // En el examen se aprueba con EXAM_MAX_MISTAKES errores o menos; si no, no se guarda
+    if (lesson.exam && mistakes > EXAM_MAX_MISTAKES) {
+      sounds.wrong()
+      setFinished({ failed: true, mistakes })
+      return
+    }
     sounds.done()
     const updated = completeLesson(progress, lesson.id, mistakes)
     setFinished({ mistakes, stars: starsFor(mistakes), xp: xpFor(mistakes), total: original.length })
@@ -74,7 +80,7 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
   const keyRef = useRef()
   keyRef.current = (e) => {
     if (finished) return
-    if (e.key === 'Enter') { e.preventDefault(); result ? next() : doCheck(); return }
+    if (e.key === 'Enter') { e.preventDefault(); result || ex.type === 'tip' ? next() : doCheck(); return }
     if (e.target.tagName === 'INPUT' || result) return
     const n = Number(e.key)
     if (ex?.options && n >= 1 && n <= ex.options.length) setResponse(ex.options[n - 1])
@@ -85,6 +91,19 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
     return () => window.removeEventListener('keydown', h)
   }, [])
 
+  if (finished?.failed) {
+    return (
+      <main className="lesson-end">
+        <div className="end-card">
+          <h1>Te faltó poco</h1>
+          <p className="lead">Tuviste {finished.mistakes} errores. Para aprobar el examen necesitas {EXAM_MAX_MISTAKES} o menos. Repasa las unidades y vuelve a intentarlo.</p>
+          <button className="btn btn-block btn-mango" autoFocus onClick={() => window.location.reload()}>Intentar otra vez</button>
+          <button className="btn btn-block btn-ghost-dark" onClick={() => navigate(`/aprender/${slug}`)}>Volver al curso</button>
+        </div>
+      </main>
+    )
+  }
+
   if (finished) {
     return (
       <main className="lesson-end">
@@ -92,14 +111,18 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
           <div className="end-stars" aria-label={`${finished.stars} de 3 estrellas`}>
             {[1, 2, 3].map((s) => <i key={s} className={s <= finished.stars ? 'on' : ''} style={{ animationDelay: `${s * 0.15}s` }} />)}
           </div>
-          <h1>¡Lección completada!</h1>
+          <h1>{lesson.exam ? '¡Aprobaste el examen!' : '¡Lección completada!'}</h1>
           <p className="lead">{lesson.title}</p>
           <dl className="end-stats">
             <div><dt>Puntos</dt><dd>+{finished.xp} XP</dd></div>
             <div><dt>Errores</dt><dd>{finished.mistakes}</dd></div>
           </dl>
           {saveError && <p className="error">No se pudo guardar el progreso: {saveError}</p>}
-          <button className="btn btn-block btn-mango" autoFocus onClick={() => navigate(`/aprender/${slug}`)}>Continuar</button>
+          {lesson.exam ? (
+            <button className="btn btn-block btn-mango" autoFocus onClick={() => navigate(`/aprender/${slug}/certificado`)}>Ver mi certificado</button>
+          ) : (
+            <button className="btn btn-block btn-mango" autoFocus onClick={() => navigate(`/aprender/${slug}`)}>Continuar</button>
+          )}
         </div>
       </main>
     )
@@ -117,6 +140,7 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
       </div>
 
       <div className="lesson-body" key={ex.id}>
+        {lesson.exam && <p className="retry">Examen final: errores {mistakes} de {EXAM_MAX_MISTAKES} permitidos</p>}
         {ex.id.endsWith('-r') && <p className="retry">Repasemos esta</p>}
         <Exercise ex={ex} value={response} setValue={setResponse} locked={!!result} onMatched={(m) => { setMistakes((x) => x + m); setResult('right'); sounds.right() }} />
       </div>
@@ -133,7 +157,9 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
               )}
             </div>
           )}
-          {result ? (
+          {ex.type === 'tip' ? (
+            <button className="btn btn-check" onClick={next} autoFocus>Empezar</button>
+          ) : result ? (
             <button className="btn btn-check" onClick={next} autoFocus>Continuar</button>
           ) : ex.type !== 'match' ? (
             <button className="btn btn-check" onClick={doCheck} disabled={!ready}>Comprobar</button>
@@ -180,6 +206,19 @@ function Exercise({ ex, value, setValue, locked, onMatched }) {
   }, [ex.id])
 
   switch (ex.type) {
+    case 'tip':
+      return (
+        <div className="tip">
+          <span className="tip-label">Antes de empezar</span>
+          <h1 className="q">{ex.title}</h1>
+          <p className="tip-body">{ex.body}</p>
+          <ul className="tip-examples">
+            {ex.examples.map(([en, es]) => (
+              <li key={en}><SpeakButton text={en} /><span><strong>{en}</strong><em>{es}</em></span></li>
+            ))}
+          </ul>
+        </div>
+      )
     case 'choose':
       return (
         <>

@@ -25,7 +25,7 @@ export default function MyCourses() {
         </ul>
       ) : (
         <div className="empty-box">
-          <p>Todavía no tienes cursos. Empieza con Inglés A1: son 12 lecciones cortas.</p>
+          <p>Todavía no tienes cursos. Empieza con Inglés A1: lecciones cortas de 5 minutos.</p>
           <Link to="/curso/ingles-a1" className="btn">Ver Inglés A1</Link>
         </div>
       )}
