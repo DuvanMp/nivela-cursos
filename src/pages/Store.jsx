@@ -4,45 +4,8 @@ import { isAvailable, lessonCount, pesos } from '../data/courses.js'
 import { useCatalog } from '../lib/catalog.jsx'
 import CourseCover from '../components/CourseCover.jsx'
 import { useAuth } from '../lib/auth.jsx'
-import { speak, sounds } from '../lib/media.js'
+import HeroShowcase, { CourseMarquee, VERB } from '../components/HeroShowcase.jsx'
 import { StartTodayStrip } from '../components/StartToday.jsx'
-
-// Mini ejercicio real en la portada: así se ve una lección
-function HeroDemo() {
-  const options = ['Goodbye', 'Thank you', 'Please']
-  const [pick, setPick] = useState(null)
-  const right = pick === 'Thank you'
-  const choose = (o) => {
-    setPick(o)
-    if (o === 'Thank you') { sounds.right(); speak('Thank you') } else sounds.wrong()
-  }
-  return (
-    <div className="demo" aria-live="polite">
-      <div className="demo-bar"><span style={{ width: pick ? '100%' : '35%' }} /></div>
-      <p className="demo-q">¿Cómo se dice <strong>«gracias»</strong>?</p>
-      <div className="options">
-        {options.map((o) => (
-          <button key={o} className={`opt ${pick === o ? (right ? 'is-right' : 'is-wrong') : ''}`} onClick={() => choose(o)}>{o}</button>
-        ))}
-      </div>
-      {pick && (
-        <div className={`demo-feedback ${right ? 'ok' : 'ko'}`}>
-          {right ? (
-            <>
-              <strong>¡Correcto! +10 XP</strong>
-              <Link to="/curso/ingles-a1" className="btn btn-light btn-sm">Seguir con Inglés</Link>
-            </>
-          ) : (
-            <>
-              <strong>Casi. Era «Thank you».</strong>
-              <button className="btn btn-light btn-sm" onClick={() => setPick(null)}>Intentar otra vez</button>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
 
 export function Price({ price, compare, currency, big }) {
   return (
@@ -139,21 +102,27 @@ export default function Store() {
   const cats = ['Todos', ...new Set(courses.map((c) => c.category).filter(Boolean))]
   const shown = courses.filter((c) => cat === 'Todos' || c.category === cat)
   const packs = bundles
+  const published = courses.filter(isAvailable)
+  const [rawActive, setActive] = useState(0)
+  const active = published.length ? rawActive % published.length : 0
+  const current = published[active]
   return (
     <main>
       <section className="hero">
         <div className="wrap hero-grid">
           <div>
-            <h1>Aprende algo útil en 10 minutos al día</h1>
-            <p className="lead">Cursos cortos en español: inglés para conversar, entrenamiento en casa, ventas, inteligencia artificial y negocios digitales. Avanzas por niveles y tu progreso queda guardado.</p>
+            <p className="hero-kicker">Cursos cortos en español · a tu ritmo</p>
+            <h1>Empieza hoy a <span className="rot" key={current?.slug || 'x'}>{VERB[current?.slug] || 'aprender algo útil'}</span></h1>
+            <p className="lead">Inglés para conversar, entrenamiento en casa, ventas, inteligencia artificial y negocios digitales. Lecciones cortas, tu progreso guardado y certificado al terminar.</p>
             <div className="actions">
               <a href="#cursos" className="btn btn-mango">Ver cursos</a>
               <a href="#paquetes" className="btn btn-ghost">Ver paquetes con descuento</a>
             </div>
           </div>
-          <HeroDemo />
+          {!loading && <HeroShowcase courses={courses} active={active} onChange={setActive} />}
         </div>
       </section>
+      {!loading && <CourseMarquee courses={courses} />}
 
       {!loading && <StartTodayStrip courses={courses} />}
 
