@@ -39,7 +39,7 @@ for (const [slug, content] of Object.entries(seedContent)) {
         if (e.options) {
           assert.ok(e.options.includes(e.answer), `${e.id}: falta la respuesta`)
           assert.equal(new Set(e.options.map(normalize)).size, e.options.length, `${e.id}: opciones repetidas ${e.options}`)
-          assert.ok(e.options.length >= 2, `${e.id}: pocas opciones`)
+          assert.ok(e.options.length >= 2 && e.options.length <= 6, `${e.id}: ${e.options.length} opciones (deben ser de 2 a 6)`)
           assert.ok(check(e, e.answer))
           assert.ok(!check(e, e.options.find((o) => o !== e.answer)))
         }

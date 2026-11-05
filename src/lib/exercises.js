@@ -13,6 +13,7 @@ const uniq = (arr) => [...new Set(arr)]
 
 // n distractores del pool que no sean la respuesta (ni se parezcan al normalizar)
 function distractors(pool, answer, n) {
+  if (n <= 0) return []
   const a = normalize(answer)
   const seen = new Set([a])
   const out = []

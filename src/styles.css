@@ -1,6 +1,9 @@
 :root {
   --ink: #15173A;
-  --paper: #F6F7FB;
+  --paper: #0B0C24;
+  --surface: #14163A;
+  --surface-2: #1C1F4C;
+  --text: #ECEEFF;
   --white: #FFFFFF;
   --ultra: #2D3BE3;
   --ultra-d: #1E28A8;
@@ -10,13 +13,13 @@
   --mint-d: #0B8A64;
   --rose: #F0506E;
   --rose-d: #C12F4D;
-  --sky: #DCE2FF;
+  --sky: #262C6E;
   --olive: #4B5A2A;
   --olive-d: #2F3A17;
   --sand: #CDB57E;
   --sand-d: #9A834C;
-  --line: #E1E4EF;
-  --muted: #565B7D;
+  --line: #2A2E66;
+  --muted: #A6ABD8;
   --display: 'Bricolage Grotesque', system-ui, sans-serif;
   --body: 'Instrument Sans', system-ui, sans-serif;
   --r: 18px;
@@ -607,3 +610,123 @@ a.node:active { transform: translateY(6px); box-shadow: 0 1px 0 var(--cd); }
 }
 @media (prefers-reduced-motion: reduce) { .st-line li.is-now::before, .buy-bar { animation: none; } }
 .start-today > .st-kicker { color: var(--mango); margin: 0; }
+
+
+/* ══ Tema oscuro ════════════════════════════════════════════════════
+   Toda la página usa los tonos oscuros de la franja «¿Y si empiezas hoy?».
+   Va al final para sobrescribir los colores claros de arriba. */
+:root { color-scheme: dark; }
+body { color: var(--text); background: radial-gradient(1200px 600px at 85% -10%, rgba(74,86,255,.18), transparent 60%), radial-gradient(900px 500px at -10% 30%, rgba(124,58,237,.12), transparent 60%), var(--paper); background-attachment: fixed; }
+input, select, textarea { color: var(--text); }
+option { background: var(--surface); color: var(--text); }
+::selection { background: rgba(255,176,32,.35); }
+
+/* Botones */
+.btn:disabled { --b: #2A2E5E; --bd: #1E2148; --t: #7C81B5; }
+.btn-ghost-dark { --t: var(--text); }
+.btn-light { --b: #ECEEFF; --bd: #A9B0E0; --t: var(--ink); }
+
+/* Encabezado translúcido */
+.top { background: rgba(11,12,36,.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.top-nav > a.active { color: #FFD27A; }
+
+/* Portada oscura con brillos */
+.hero { background: radial-gradient(circle at 80% 20%, rgba(74,86,255,.55), transparent 45%), radial-gradient(circle at 5% 90%, rgba(255,176,32,.18), transparent 40%), linear-gradient(160deg, #1A1C55, #0E0F2E 70%); }
+.hero .lead { color: #C9CDF2; }
+.demo { background: var(--surface); color: var(--text); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 8px 0 #0A0B22, 0 30px 60px rgba(74,86,255,.35); }
+
+/* Superficies */
+.card, .buy, .unit-row, .auth-card, .checkout-card, .empty-box, .table-wrap, .kpis div, .sheet-card, .radio, .bundle, .aff-link, .end-card, .chips-filter button, .opt, .chip, .sts-card { background: var(--surface); }
+.tabs button[aria-selected='true'] { background: var(--surface-2); color: var(--text); }
+.field input:focus, .type-input:focus { background: var(--surface-2); }
+.table select, .price-edit input { background: var(--surface-2); }
+.card-meta strong, .radio strong, .b-note p, .fb-extra, .upsell span, .sts-card, .sts-date b { color: var(--text); }
+.cover-picker { background: var(--surface); }
+.wk-item { background: var(--surface-2); }
+.lesson, .check-bar { background: var(--paper); }
+.lesson-end { background: radial-gradient(circle at 50% 0%, rgba(74,86,255,.5), transparent 60%), #0E0F2E; }
+.end-card { box-shadow: 0 8px 0 #0A0B22, 0 30px 60px rgba(74,86,255,.35); }
+
+/* Elementos oscuros que ahora necesitan contraste */
+.chips-filter button[aria-pressed='true'] { background: var(--mango); color: var(--ink); border-color: var(--mango); }
+.b-pack, .node-tip, .b-steps li::before { background: var(--ultra); }
+.finish, .aff-cta { background: linear-gradient(135deg, #22257A, #2A1F8F); }
+.how .steps li { border-top-color: var(--ultra); }
+.bg-ink { background: var(--surface); }
+.node-wrap.locked .node { background: #22264F; color: #5F6496; box-shadow: 0 7px 0 #171A3D; }
+.node-wrap.is-review:not(.locked) .node { background: var(--surface); }
+.stars i, .end-stars i { background: #2E3266; }
+.chip.used { background: var(--surface-2); border-color: var(--surface-2); }
+
+/* Mensajes y estados en tonos oscuros */
+.opt:hover:not(:disabled) { background: var(--surface-2); }
+.opt.is-picked { background: rgba(74,86,255,.22); color: #C7CDFF; }
+.opt.is-picked kbd { color: #C7CDFF; }
+.opt.is-right, .opt.is-matched, .demo-feedback.ok, .info, .welcome, .tag-owned, .pill, .s-pagado, .s-pagada { background: rgba(18,184,134,.16); color: #6EE7B7; border-color: rgba(18,184,134,.45); }
+.opt.is-wrong, .demo-feedback.ko, .error, .s-reembolsado { background: rgba(240,80,110,.16); color: #FF9AAE; border-color: rgba(240,80,110,.5); }
+.test-note, .s-simulado, .s-pendiente, .upsell, .sts-date { background: rgba(255,176,32,.14); color: #FFD27A; border-color: rgba(255,176,32,.4); }
+.upsell strong { color: #FFD27A; }
+.save { background: rgba(34,197,94,.16); color: #86EFAC; }
+.s-cortesia, .tip-label, .b-note.tip, .c-who, .speak-btn.slow { background: rgba(74,86,255,.22); color: #C7CDFF; }
+.speak-btn.slow { box-shadow: 0 4px 0 #0A0B22; }
+.b-note.safety { background: rgba(255,176,32,.12); color: #FFD27A; }
+.check-bar.right { background: #0F2E2A; border-color: rgba(18,184,134,.45); }
+.check-bar.wrong { background: #33132A; border-color: rgba(240,80,110,.5); }
+.right .feedback { color: #6EE7B7; }
+.wrong .feedback { color: #FF9AAE; }
+.retry { color: #FFD27A; }
+.b-prompt { background: rgba(74,86,255,.12); }
+.c-line.right .c-who { background: rgba(255,176,32,.2); color: #FFD27A; }
+.c-line.right .c-bubble { background: rgba(255,176,32,.12); }
+.c-bubble, .b-check label, .phrase, .tip-examples li, .end-stats div { background: var(--surface-2); }
+.c-bubble.pending { background: var(--surface); }
+.b-rec { background: #ECEEFF; }
+.bundle-covers .cover { border-color: rgba(255,255,255,.85); }
+
+/* Encabezado de cada curso: oscuro con el color del curso como brillo */
+.detail-hero { color: #fff; }
+.bg-ultra { background: radial-gradient(circle at 85% 30%, rgba(74,86,255,.6), transparent 50%), #0E0F2E; }
+.bg-mint { background: radial-gradient(circle at 85% 30%, rgba(18,184,134,.45), transparent 50%), #0B1F2A; }
+.bg-mango { background: radial-gradient(circle at 85% 30%, rgba(255,176,32,.4), transparent 50%), #1E1730; color: #fff; }
+.bg-rose { background: radial-gradient(circle at 85% 30%, rgba(240,80,110,.45), transparent 50%), #22112E; }
+.bg-sky { background: radial-gradient(circle at 85% 30%, rgba(169,182,255,.35), transparent 50%), #0E0F2E; color: #fff; }
+.bg-olive { background: radial-gradient(circle at 85% 30%, rgba(138,159,75,.45), transparent 50%), #141A0B; color: #fff; }
+.bg-sand { background: radial-gradient(circle at 85% 30%, rgba(205,181,126,.4), transparent 50%), #1C180E; color: #fff; }
+.detail-hero .lead { color: #C9CDF2; }
+
+/* Islas claras que deben seguir claras (certificado imprimible y chat de WhatsApp) */
+.cert { --text: var(--ink); --muted: #565B7D; --line: #E1E4EF; --paper: #F6F7FB; --surface: #fff; background: #fff; color: var(--ink); }
+.wa { --text: #111; color: #111; }
+.fig { --text: var(--ink); }
+
+/* ── Tarjetas que se mueven y se iluminan al pasar el mouse ── */
+.card, .sts-card, .bundle { position: relative; transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, border-color .25s; }
+.card .cover > img, .card .cover > svg, .sts-card .cover > img, .sts-card .cover > svg { transition: transform .5s cubic-bezier(.2,.8,.2,1), filter .3s; }
+.card .cover::after, .sts-card .cover::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.28) 50%, transparent 65%); transform: translateX(-120%); }
+@media (hover: hover) {
+  .card:hover, .sts-card:hover { transform: translateY(-8px); border-color: rgba(140,150,255,.65); box-shadow: 0 0 0 1px rgba(140,150,255,.35), 0 22px 50px rgba(74,86,255,.38), 0 0 40px rgba(255,176,32,.12); }
+  .card:hover .cover > img, .card:hover .cover > svg, .sts-card:hover .cover > img, .sts-card:hover .cover > svg { transform: scale(1.07); filter: saturate(1.15) brightness(1.05); }
+  .card:hover .cover::after, .sts-card:hover .cover::after { transform: translateX(120%); transition: transform .8s ease; }
+  .card:hover h3 { color: #FFD27A; }
+  .card:hover .go { color: #FFD27A; }
+  .bundle:hover { transform: translateY(-4px); border-color: rgba(255,176,32,.55); box-shadow: 0 22px 50px rgba(255,176,32,.16), 0 0 0 1px rgba(255,176,32,.3); }
+  .bundle:hover .bundle-covers .cover:nth-child(1) { transform: translate(-36%, -18%) rotate(-12deg); }
+  .bundle:hover .bundle-covers .cover:nth-child(3) { transform: translate(36%, 24%) rotate(13deg); }
+}
+.bundle-covers .cover { transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+.card h3 { transition: color .2s; }
+.card:focus-visible, .sts-card:focus-visible { outline: 3px solid var(--mango); outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .card, .sts-card, .bundle, .card .cover > img, .card .cover > svg, .sts-card .cover > img, .sts-card .cover > svg, .bundle-covers .cover { transition: none; }
+  .card:hover, .sts-card:hover, .bundle:hover { transform: none; }
+  .card .cover::after, .sts-card .cover::after { display: none; }
+}
+
+/* Textos de acento legibles sobre fondo oscuro */
+.cat, .go, .wk-info summary, .sts-buy em, .how .steps li::before { color: #A5B0FF; }
+.admin-tabs button[aria-selected='true'] { color: #FFD27A; border-bottom-color: var(--mango); }
+.perk { color: #6EE7B7; }
+.wk-safety { color: #FFD27A; }
+.bundle-covers { background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--c, var(--ultra)) 55%, transparent), transparent 70%), #10123A; }
+.bundle-covers.big { background: rgba(255,255,255,.06); }
+.bundle-covers.mini { background: none; }
