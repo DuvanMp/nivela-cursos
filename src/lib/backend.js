@@ -21,7 +21,7 @@ const call = (name) => async (...args) => (await get())[name](...args)
 const METHODS = [
   'getProfile', 'signUp', 'signIn', 'signOut', 'listCourses', 'getContent', 'getSettings',
   'getPurchases', 'purchase', 'purchaseBundle', 'getProgress', 'saveProgress', 'listBundles', 'courseStats', 'getAffiliate',
-  'adminSaveCourse', 'adminSaveBundle', 'adminPayCommissions', 'adminListUsers', 'adminSetRole', 'adminListPurchases', 'adminSetAccess', 'adminSaveSettings',
+  'adminSaveCourse', 'adminSaveBundle', 'adminUploadImage', 'adminDeleteImage', 'adminPayCommissions', 'adminListUsers', 'adminSetRole', 'adminListPurchases', 'adminSetAccess', 'adminSaveSettings',
 ]
 
 export const backend = {

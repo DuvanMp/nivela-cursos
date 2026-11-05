@@ -50,12 +50,21 @@ Tienda de cursos (React + Vite + Supabase) con:
 
 ## Panel de administración (`/admin`)
 
-- **Cursos y precios:** precio, precio anterior (descuento), etiqueta «Nuevo» o «Recomendado», estado, textos y cursos nuevos.
-- **Paquetes:** cursos incluidos y precio; el ahorro se calcula solo.
+- **Cursos y precios:** imagen de portada (subir, cambiar o volver a la ilustración original), precio, precio anterior (descuento), etiqueta «Nuevo» o «Recomendado», estado, textos y cursos nuevos.
+- **Paquetes:** cursos incluidos, precio e imagen propia opcional; el ahorro se calcula solo.
 - **Afiliados:** comisiones por pagar y pagadas; marca como pagado cuando transfieras.
 - **Usuarios y roles:** busca usuarios, cambia su rol, registra una venta pagada por fuera (Nequi, transferencia) o da acceso de cortesía, y quita accesos.
 - **Ventas:** ingresos reales, pagos de prueba, cortesías y la lista de compras.
 - **Ajustes:** activa o desactiva los pagos de prueba (**desactívalos antes de lanzar**) y define el % de comisión de afiliados.
+
+## Imágenes de portada
+
+Cada curso trae su ilustración propia (`src/components/CoverArt.jsx`). Desde `/admin` puedes reemplazarla por una imagen tuya, en el curso o en el paquete:
+
+- La página la recorta a 16:9 (1280 × 720), la comprime a WebP y la sube a la carpeta pública `covers` de Supabase Storage (solo admite JPG, PNG y WebP de hasta 1 MB; nunca SVG).
+- Solo un administrador puede subir, cambiar o borrar imágenes: lo exige la base de datos (`supabase/schema.sql`), no la página.
+- Si actualizas una instalación que ya tenías, **vuelve a ejecutar `supabase/schema.sql`** en el SQL Editor (se puede repetir sin riesgo): agrega la columna `image` y crea la carpeta con sus reglas.
+- Los cursos nuevos sin imagen ni ilustración usan una portada de color con el «Texto de portada».
 
 ## Seguridad
 
@@ -67,7 +76,7 @@ Tienda de cursos (React + Vite + Supabase) con:
   - El progreso solo se guarda en cursos a los que el usuario tiene acceso.
 - **Contraseñas:** las gestiona Supabase Auth (cifradas, con límite de intentos). La página exige 8 caracteres con letras y números.
 - **Cabeceras de seguridad** en `vercel.json`: Content-Security-Policy, HSTS, protección contra iframes (clickjacking), `nosniff` y `Referrer-Policy`.
-- **Pruebas:** `npm run test:db` comprueba 72 reglas de seguridad (precios, roles, contenido, compras, paquetes y comisiones) en un PostgreSQL embebido.
+- **Pruebas:** `npm run test:db` comprueba 95 reglas de seguridad (precios, roles, contenido, compras, paquetes, comisiones e imágenes) en un PostgreSQL embebido.
 
 **Límite conocido:** la calificación de las lecciones ocurre en el navegador, así que un usuario técnico con acceso al curso podría marcar lecciones como completadas sin hacerlas. Afecta solo a su propio progreso y certificado (que no es oficial). Si algún día el certificado tiene valor formal, el examen final debe calificarse en el servidor.
 

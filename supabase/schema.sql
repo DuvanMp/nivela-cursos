@@ -312,3 +312,38 @@ create policy progress_update on public.progress for update using (user_id = aut
 -- Ajustes: lectura pública (la página necesita el modo de pago y el % de comisión); escribe solo el admin
 create policy settings_select on public.settings for select using (true);
 create policy settings_write on public.settings for all using (public.is_admin()) with check (public.is_admin());
+
+-- ── Imágenes de portada ─────────────────────────────────────────────
+-- Cada curso y paquete puede tener una imagen propia (si queda vacía se usa la
+-- ilustración de la tienda). Solo se guarda la dirección (https://… o /…).
+alter table public.courses add column if not exists image text not null default ''
+  check (char_length(image) <= 500 and (image = '' or image ~ '^(https://|/)[^[:space:]]+$'));
+alter table public.bundles add column if not exists image text not null default ''
+  check (char_length(image) <= 500 and (image = '' or image ~ '^(https://|/)[^[:space:]]+$'));
+
+-- Carpeta pública «covers» en Supabase Storage: cualquiera puede VER las imágenes,
+-- pero solo un administrador puede subir, cambiar o borrar. Solo acepta
+-- WebP, JPG o PNG de hasta 1 MB (nada de SVG, que podría llevar código).
+do $$
+begin
+  if exists (select 1 from information_schema.schemata where schema_name = 'storage') then
+    insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+    values ('covers', 'covers', true, 1048576, array['image/webp', 'image/jpeg', 'image/png'])
+    on conflict (id) do update set public = true, file_size_limit = 1048576,
+      allowed_mime_types = array['image/webp', 'image/jpeg', 'image/png'];
+
+    drop policy if exists covers_admin_select on storage.objects;
+    drop policy if exists covers_admin_insert on storage.objects;
+    drop policy if exists covers_admin_update on storage.objects;
+    drop policy if exists covers_admin_delete on storage.objects;
+    -- (borrar y reemplazar también necesitan poder «ver» el archivo; ver las imágenes en la tienda no depende de esto)
+    create policy covers_admin_select on storage.objects for select to authenticated
+      using (bucket_id = 'covers' and public.is_admin());
+    create policy covers_admin_insert on storage.objects for insert to authenticated
+      with check (bucket_id = 'covers' and public.is_admin());
+    create policy covers_admin_update on storage.objects for update to authenticated
+      using (bucket_id = 'covers' and public.is_admin()) with check (bucket_id = 'covers' and public.is_admin());
+    create policy covers_admin_delete on storage.objects for delete to authenticated
+      using (bucket_id = 'covers' and public.is_admin());
+  end if;
+end $$;

@@ -42,8 +42,8 @@ export default function Login() {
     <main className="wrap auth">
       <div className="auth-card">
         <div className="tabs" role="tablist">
-          <button role="tab" aria-selected={tab === 'signup'} onClick={() => { setTab('signup'); setError('') }}>Crear cuenta</button>
-          <button role="tab" aria-selected={tab === 'signin'} onClick={() => { setTab('signin'); setError('') }}>Entrar</button>
+          <button type="button" role="tab" aria-selected={tab === 'signup'} onClick={() => { setTab('signup'); setError('') }}>Crear cuenta</button>
+          <button type="button" role="tab" aria-selected={tab === 'signin'} onClick={() => { setTab('signin'); setError('') }}>Entrar</button>
         </div>
         <form onSubmit={submit} noValidate>
           {tab === 'signup' && (

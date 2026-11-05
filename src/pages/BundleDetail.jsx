@@ -32,9 +32,13 @@ export default function BundleDetail() {
             <h1>{bundle.title}</h1>
             <p className="lead">{bundle.short}</p>
           </div>
-          <div className="bundle-covers big" aria-hidden="true">
-            {info.items.slice(0, 3).map((c) => <CourseCover key={c.slug} course={c} />)}
-          </div>
+          {bundle.image ? (
+            <div className="bundle-covers big has-image" aria-hidden="true"><img src={bundle.image} alt="" decoding="async" /></div>
+          ) : (
+            <div className="bundle-covers big" aria-hidden="true">
+              {info.items.slice(0, 3).map((c) => <CourseCover key={c.slug} course={c} />)}
+            </div>
+          )}
         </div>
       </section>
 

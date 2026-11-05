@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { backend } from '../lib/backend.js'
 import { useAuth } from '../lib/auth.jsx'
 import { useCatalog } from '../lib/catalog.jsx'
 import { COLORS, STATUS_LABEL, pesos } from '../data/courses.js'
 import CourseCover from '../components/CourseCover.jsx'
+import { prepareCover } from '../lib/image.js'
 
 // Panel de administración. La interfaz solo aparece para administradores,
 // pero la protección real está en la base de datos: si alguien sin rol de
@@ -41,7 +42,7 @@ function useNotice() {
 }
 
 // ── Cursos y precios ──────────────────────────────────────────────
-const EMPTY = { slug: '', title: '', short: '', description: '', level: '', category: '', price: 0, compare_at_price: null, badge: '', currency: 'COP', color: 'ultra', cover: '', status: 'draft', sort: 99 }
+const EMPTY = { slug: '', title: '', short: '', description: '', level: '', category: '', price: 0, compare_at_price: null, badge: '', currency: 'COP', color: 'ultra', cover: '', image: '', status: 'draft', sort: 99 }
 
 function validate(c, isNew, existing) {
   if (isNew && !/^[a-z0-9-]{2,60}$/.test(c.slug)) return 'La dirección (slug) solo puede tener minúsculas, números y guiones, de 2 a 60 caracteres.'
@@ -119,11 +120,50 @@ function PriceInput({ course, onSave }) {
   )
 }
 
+// Imagen de portada: se sube, se comprime a 16:9 y queda guardada en la carpeta
+// pública «covers». Si se quita, vuelve la ilustración original de la tienda.
+function CoverPicker({ item, empty, onChange, onUploaded, onError }) {
+  const [busy, setBusy] = useState(false)
+  const pick = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setBusy(true); onError('')
+    try {
+      const blob = await prepareCover(file, backend.mode === 'demo' ? { w: 960, h: 540, maxBytes: 110 * 1024 } : undefined)
+      const url = await backend.adminUploadImage(blob, item.slug)
+      onUploaded(url)
+      onChange(url)
+    } catch (err) { onError(err.message) } finally { setBusy(false) }
+  }
+  return (
+    <div className="cover-picker wide">
+      <div className="cp-preview">{item.image || !empty ? <CourseCover course={item} /> : <p>{empty}</p>}</div>
+      <div className="cp-info">
+        <strong>Imagen de portada</strong>
+        <p className="hint">Mejor horizontal (16:9, por ejemplo 1280 × 720). Se recorta al centro y se comprime sola. Formatos: JPG, PNG o WebP. Pon el texto importante en el centro para que se vea bien en todas las tarjetas.</p>
+        <div className="cp-actions">
+          <label className={`btn btn-sm${busy ? ' is-busy' : ''}`}>
+            {busy ? 'Subiendo…' : item.image ? 'Cambiar imagen' : 'Subir imagen'}
+            <input type="file" accept="image/png,image/jpeg,image/webp" onChange={pick} disabled={busy} hidden />
+          </label>
+          {item.image && <button type="button" className="btn btn-sm btn-ghost-dark" onClick={() => onChange('')}>{empty ? 'Quitar imagen' : 'Volver a la original'}</button>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Borra imágenes que quedaron sin usar (si falla no pasa nada)
+const dropImages = (urls, keep) => urls.filter((u) => u && u !== keep).forEach((u) => backend.adminDeleteImage(u).catch(() => {}))
+
 function CourseForm({ course, isNew, existing, onClose, onSaved }) {
   const [c, setC] = useState(course)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const uploaded = useRef([])
   const set = (k, num) => (e) => setC({ ...c, [k]: num ? Number(e.target.value.replace(/\D/g, '') || 0) : e.target.value })
+  const cancel = () => { dropImages(uploaded.current, course.image); onClose() }
 
   const submit = async (e) => {
     e.preventDefault()
@@ -131,7 +171,11 @@ function CourseForm({ course, isNew, existing, onClose, onSaved }) {
     const err = validate(clean, isNew, existing)
     if (err) return setError(err)
     setBusy(true)
-    try { await backend.adminSaveCourse(clean); onSaved() } catch (e2) { setError(e2.message); setBusy(false) }
+    try {
+      await backend.adminSaveCourse(clean)
+      dropImages([...uploaded.current, course.image], clean.image)
+      onSaved()
+    } catch (e2) { setError(e2.message); setBusy(false) }
   }
 
   return (
@@ -139,6 +183,7 @@ function CourseForm({ course, isNew, existing, onClose, onSaved }) {
       <form className="sheet-card" onSubmit={submit}>
         <h2>{isNew ? 'Nuevo curso' : 'Editar curso'}</h2>
         <div className="form-grid">
+          <CoverPicker item={c} onChange={(image) => setC((p) => ({ ...p, image }))} onUploaded={(u) => uploaded.current.push(u)} onError={setError} />
           <label className="field">Título<input value={c.title} onChange={set('title')} maxLength={120} required /></label>
           <label className="field">Dirección (slug)<input value={c.slug} onChange={set('slug')} disabled={!isNew} placeholder="ej. excel-avanzado" /></label>
           <label className="field">Precio (COP)<input inputMode="numeric" value={c.price.toLocaleString('es-CO')} onChange={set('price', true)} /></label>
@@ -158,14 +203,14 @@ function CourseForm({ course, isNew, existing, onClose, onSaved }) {
           <label className="field">Color
             <select value={c.color} onChange={set('color')}>{COLORS.map((x) => <option key={x}>{x}</option>)}</select>
           </label>
-          <label className="field">Texto de portada<input value={c.cover} onChange={set('cover')} maxLength={20} /></label>
+          <label className="field">Texto de portada (si no hay imagen)<input value={c.cover} onChange={set('cover')} maxLength={20} /></label>
           <label className="field wide">Descripción corta<input value={c.short} onChange={set('short')} maxLength={200} /></label>
           <label className="field wide">Descripción<textarea value={c.description} onChange={set('description')} rows={4} maxLength={2000} /></label>
         </div>
         {isNew && <p className="hint">El curso se crea sin lecciones. El contenido se agrega en el código (src/data) y se sube con npm run seed.</p>}
         {error && <p className="error" role="alert">{error}</p>}
         <div className="sheet-actions">
-          <button type="button" className="btn btn-ghost-dark" onClick={onClose}>Cancelar</button>
+          <button type="button" className="btn btn-ghost-dark" onClick={cancel}>Cancelar</button>
           <button className="btn" disabled={busy}>{busy ? 'Guardando…' : 'Guardar curso'}</button>
         </div>
       </form>
@@ -178,7 +223,7 @@ function BundlesAdmin() {
   const { bundles, courses, bundleInfo, reload } = useCatalog()
   const [editing, setEditing] = useState(null)
   const [notice, show] = useNotice()
-  const blank = { slug: '', title: '', short: '', price: 0, currency: 'COP', color: 'ultra', cover: '', status: 'draft', courses: [], sort: 99 }
+  const blank = { slug: '', title: '', short: '', price: 0, currency: 'COP', color: 'ultra', cover: '', image: '', status: 'draft', courses: [], sort: 99 }
 
   return (
     <section className="admin-panel">
@@ -215,6 +260,8 @@ function BundlesAdmin() {
 function BundleForm({ b: initial, isNew, courses, existing, onClose, onSaved }) {
   const [b, setB] = useState(initial)
   const [error, setError] = useState('')
+  const uploaded = useRef([])
+  const cancel = () => { dropImages(uploaded.current, initial.image); onClose() }
   const set = (k, num) => (e) => setB({ ...b, [k]: num ? Number(e.target.value.replace(/\D/g, '') || 0) : e.target.value })
   const toggle = (slug) => setB({ ...b, courses: b.courses.includes(slug) ? b.courses.filter((x) => x !== slug) : [...b.courses, slug] })
   const separate = b.courses.reduce((n, s) => n + (courses.find((c) => c.slug === s)?.price || 0), 0)
@@ -226,7 +273,7 @@ function BundleForm({ b: initial, isNew, courses, existing, onClose, onSaved }) 
     if (b.title.trim().length < 2) return setError('Escribe un título.')
     if (b.courses.length < 2) return setError('Un paquete necesita al menos 2 cursos.')
     if (b.price >= separate) return setError('El precio del paquete debe ser menor que la suma de los cursos por separado.')
-    try { await backend.adminSaveBundle({ ...b, title: b.title.trim() }); onSaved() } catch (e2) { setError(e2.message) }
+    try { await backend.adminSaveBundle({ ...b, title: b.title.trim() }); dropImages([...uploaded.current, initial.image], b.image); onSaved() } catch (e2) { setError(e2.message) }
   }
 
   return (
@@ -234,6 +281,7 @@ function BundleForm({ b: initial, isNew, courses, existing, onClose, onSaved }) 
       <form className="sheet-card" onSubmit={submit}>
         <h2>{isNew ? 'Nuevo paquete' : 'Editar paquete'}</h2>
         <div className="form-grid">
+          <CoverPicker item={b} empty="Sin imagen propia: la tienda muestra juntas las portadas de los cursos del paquete." onChange={(image) => setB((p) => ({ ...p, image }))} onUploaded={(u) => uploaded.current.push(u)} onError={setError} />
           <label className="field">Título<input value={b.title} onChange={set('title')} maxLength={120} /></label>
           <label className="field">Dirección (slug)<input value={b.slug} onChange={set('slug')} disabled={!isNew} /></label>
           <label className="field">Precio del paquete (COP)<input inputMode="numeric" value={b.price.toLocaleString('es-CO')} onChange={set('price', true)} /></label>
@@ -253,7 +301,7 @@ function BundleForm({ b: initial, isNew, courses, existing, onClose, onSaved }) 
         <p className="hint">Por separado: {pesos(separate)} · Paquete: {pesos(b.price)} · Ahorro: {pesos(Math.max(0, separate - b.price))}</p>
         {error && <p className="error" role="alert">{error}</p>}
         <div className="sheet-actions">
-          <button type="button" className="btn btn-ghost-dark" onClick={onClose}>Cancelar</button>
+          <button type="button" className="btn btn-ghost-dark" onClick={cancel}>Cancelar</button>
           <button className="btn">Guardar paquete</button>
         </div>
       </form>

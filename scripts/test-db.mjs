@@ -17,6 +17,17 @@ grant usage on schema public, auth to anon, authenticated;
 alter default privileges in schema public grant all on tables to anon, authenticated;
 alter default privileges in schema public grant all on functions to anon, authenticated;
 `)
+// Simulación mínima de Supabase Storage (carpetas y archivos con RLS)
+await db.exec(`
+create schema storage;
+create table storage.buckets (id text primary key, name text, public boolean default false, file_size_limit bigint, allowed_mime_types text[]);
+create table storage.objects (id serial primary key, bucket_id text references storage.buckets (id), name text);
+alter table storage.objects enable row level security;
+grant usage on schema storage to anon, authenticated;
+grant all on all tables in schema storage to anon, authenticated;
+grant usage on all sequences in schema storage to anon, authenticated;
+insert into storage.buckets (id, name) values ('otra', 'otra');
+`)
 await db.exec(sql('schema.sql'))
 await db.exec(sql('schema.sql')) // se puede repetir
 await db.exec(sql('seed.sql'))
@@ -116,6 +127,29 @@ await as(B, 'authenticated', `select public.simulate_bundle_purchase('kit-empren
 await as(A, 'authenticated', `update public.courses set price = -5 where slug='ingles-a1'`, true)
 await as(A, 'authenticated', `insert into public.courses (slug, title, price) values ('Malo Slug','x',1)`, true)
 await as(A, 'authenticated', `insert into public.bundles (slug, title, price, courses) values ('uno','Solo uno',1, array['ingles-a1'])`, true)
+
+// ── Imágenes de portada (columna image y carpeta pública «covers»)
+r = (await db.query(`select public, file_size_limit::int l, allowed_mime_types m from storage.buckets where id='covers'`)).rows
+check(r.length === 1 && r[0].public === true && r[0].l === 1048576, 'existe la carpeta pública covers con límite de 1 MB')
+check(r[0].m.includes('image/webp') && !r[0].m.some((t) => /svg/.test(t)), 'covers acepta WebP/JPG/PNG y no SVG')
+await as(A, 'authenticated', `insert into storage.objects (bucket_id, name) values ('covers','ingles-a1-1.webp')`)
+await as(B, 'authenticated', `insert into storage.objects (bucket_id, name) values ('covers','hack.webp')`, true) // un estudiante no sube
+await as(null, 'anon', `insert into storage.objects (bucket_id, name) values ('covers','hack2.webp')`, true)
+await as(A, 'authenticated', `insert into storage.objects (bucket_id, name) values ('otra','x.webp')`, true) // solo la carpeta covers
+r = await as(B, 'authenticated', `select name from storage.objects`); check(r.length === 0, 'un estudiante no lista archivos')
+await as(B, 'authenticated', `delete from storage.objects where bucket_id='covers'`)
+r = (await db.query(`select count(*)::int n from storage.objects`)).rows; check(r[0].n === 1, 'un estudiante no borra imágenes')
+await as(A, 'authenticated', `delete from storage.objects where bucket_id='covers'`)
+r = (await db.query(`select count(*)::int n from storage.objects`)).rows; check(r[0].n === 0, 'un admin sí borra imágenes')
+await as(A, 'authenticated', `update public.courses set image = 'https://abc.supabase.co/storage/v1/object/public/covers/a.webp' where slug='reto-militar-mujeres'`)
+r = await as(null, 'anon', `select image from public.courses where slug='reto-militar-mujeres'`); check(r[0].image.endsWith('a.webp'), 'admin cambia la imagen de un curso y todos la ven')
+await as(B, 'authenticated', `update public.courses set image = 'https://evil.example/x.png' where slug='reto-militar-mujeres'`)
+r = await as(null, 'anon', `select image from public.courses where slug='reto-militar-mujeres'`); check(r[0].image.endsWith('a.webp'), 'un estudiante no cambia imágenes de cursos')
+await as(A, 'authenticated', `update public.courses set image = 'javascript:alert(1)' where slug='reto-militar-mujeres'`, true)
+await as(A, 'authenticated', `update public.courses set image = 'https://x.co/a b.png' where slug='reto-militar-mujeres'`, true)
+await as(A, 'authenticated', `update public.bundles set image = '/covers/kit.png' where slug='kit-emprendedor'`)
+await as(A, 'authenticated', `update public.bundles set image = 'data:image/png;base64,AAAA' where slug='kit-emprendedor'`, true)
+await as(A, 'authenticated', `update public.courses set image = '' where slug='reto-militar-mujeres'`)
 
 console.log(`${failN ? '✗' : '✓'} Base de datos: ${ok} verificaciones correctas, ${failN} fallidas`)
 if (failN) process.exit(1)

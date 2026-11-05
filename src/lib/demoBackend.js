@@ -228,6 +228,13 @@ export const demoBackend = {
     save(db)
   },
 
+  // En modo demo la imagen se guarda dentro del navegador (ya viene comprimida)
+  async adminUploadImage(blob) {
+    const { blobToDataUrl } = await import('./image.js')
+    return blobToDataUrl(blob)
+  },
+  async adminDeleteImage() {},
+
   async adminSaveBundle(bundle) {
     const db = load()
     requireAdmin(db)

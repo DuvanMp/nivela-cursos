@@ -103,9 +103,13 @@ export function BundleCard({ bundle }) {
   const ownedAll = info.items.every((c) => hasAccess(c.slug))
   return (
     <article className={`bundle u-${bundle.color}`}>
-      <div className="bundle-covers" aria-hidden="true">
-        {info.items.slice(0, 3).map((c) => <CourseCover key={c.slug} course={c} />)}
-      </div>
+      {bundle.image ? (
+        <div className="bundle-covers has-image" aria-hidden="true"><img src={bundle.image} alt="" loading="lazy" decoding="async" /></div>
+      ) : (
+        <div className="bundle-covers" aria-hidden="true">
+          {info.items.slice(0, 3).map((c) => <CourseCover key={c.slug} course={c} />)}
+        </div>
+      )}
       <div className="bundle-body">
         <div className="bundle-head">
           <span className="badge b-pack">Paquete · {info.items.length} cursos</span>

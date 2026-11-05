@@ -112,13 +112,29 @@ export function createSupabaseBackend(url, anonKey) {
 
     // ── Administración (la base de datos verifica que seas admin) ──
     async adminSaveCourse(course) {
-      const { slug, title, short, description, level, category, price, compare_at_price, badge, currency, color, cover, status, sort } = course
-      await q(sb.from('courses').upsert({ slug, title, short, description, level, category, price, compare_at_price: compare_at_price || null, badge: badge || '', currency, color, cover, status, sort }))
+      const { slug, title, short, description, level, category, price, compare_at_price, badge, currency, color, cover, image, status, sort } = course
+      await q(sb.from('courses').upsert({ slug, title, short, description, level, category, price, compare_at_price: compare_at_price || null, badge: badge || '', currency, color, cover, image: image || '', status, sort }))
     },
 
     async adminSaveBundle(bundle) {
-      const { slug, title, short, price, currency, color, cover, status, courses, sort } = bundle
-      await q(sb.from('bundles').upsert({ slug, title, short, price, currency, color, cover, status, courses, sort }))
+      const { slug, title, short, price, currency, color, cover, image, status, courses, sort } = bundle
+      await q(sb.from('bundles').upsert({ slug, title, short, price, currency, color, cover, image: image || '', status, courses, sort }))
+    },
+
+    // Sube una imagen de portada a la carpeta pública «covers» (la base de datos
+    // solo lo permite a administradores) y devuelve su dirección pública.
+    async adminUploadImage(blob, slug) {
+      const ext = blob.type === 'image/webp' ? 'webp' : blob.type === 'image/png' ? 'png' : 'jpg'
+      const name = `${String(slug || 'portada').replace(/[^a-z0-9-]/g, '').slice(0, 40) || 'portada'}-${Date.now()}.${ext}`
+      const { error } = await sb.storage.from('covers').upload(name, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false })
+      if (error) fail(error)
+      return sb.storage.from('covers').getPublicUrl(name).data.publicUrl
+    },
+
+    // Borra una imagen anterior (si era nuestra); si falla no pasa nada.
+    async adminDeleteImage(url) {
+      const m = String(url || '').match(/\/storage\/v1\/object\/public\/covers\/([^/?#]+)$/)
+      if (m) await sb.storage.from('covers').remove([decodeURIComponent(m[1])])
     },
 
     async adminPayCommissions(affiliateId) {
