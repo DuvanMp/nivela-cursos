@@ -1,5 +1,5 @@
-import { useId } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useEffect, useId, useState } from 'react'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 
 // Logo: doble chevrón «subir de nivel» con brillo naranja, y la «i» de nivela con una chispa
@@ -27,24 +27,45 @@ export function Logo() {
 export default function Header() {
   const { user, isAdmin, signOut } = useAuth()
   const navigate = useNavigate()
+  const { pathname, hash } = useLocation()
+  const [open, setOpen] = useState(false)
+
+  // El menú del celular se cierra al cambiar de página o con la tecla Esc
+  useEffect(() => { setOpen(false) }, [pathname, hash])
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   return (
-    <header className="top">
+    <>
+    {open && <div className="menu-scrim" onClick={() => setOpen(false)} aria-hidden="true" />}
+    <header className={`top${open ? ' menu-open' : ''}`}>
       <div className="wrap top-inner">
         <Logo />
-        <nav className="top-nav" aria-label="Principal">
+        <nav className="top-nav" id="menu-principal" aria-label="Principal">
           <NavLink to="/" end>Cursos</NavLink>
           {user && <NavLink to="/mis-cursos">Mis cursos</NavLink>}
           <NavLink to="/afiliados">Afiliados</NavLink>
           {isAdmin && <NavLink to="/admin">Administrar</NavLink>}
           {user ? (
-            <button className="link-btn" onClick={async () => { await signOut(); navigate('/') }}>
+            <button className="link-btn nav-out" onClick={async () => { setOpen(false); await signOut(); navigate('/') }}>
               Salir <span className="who">({user.name})</span>
             </button>
           ) : (
-            <Link to="/entrar" className="btn btn-sm">Entrar</Link>
+            <Link to="/entrar" className="btn btn-sm nav-enter">Entrar</Link>
           )}
         </nav>
+        <div className="top-mobile">
+          {!user && <Link to="/entrar" className="btn btn-sm">Entrar</Link>}
+          <button className="menu-btn" aria-expanded={open} aria-controls="menu-principal" aria-label={open ? 'Cerrar menú' : 'Abrir menú'} onClick={() => setOpen((o) => !o)}>
+            <span /><span /><span />
+          </button>
+        </div>
       </div>
     </header>
+    </>
   )
 }
