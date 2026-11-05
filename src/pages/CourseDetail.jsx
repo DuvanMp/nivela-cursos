@@ -1,9 +1,11 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { isAvailable, lessonCount, pesos } from '../data/courses.js'
 import { useCatalog } from '../lib/catalog.jsx'
 import CourseCover from '../components/CourseCover.jsx'
 import { useAuth } from '../lib/auth.jsx'
 import { Price } from './Store.jsx'
+import { BuyBar, StartToday } from '../components/StartToday.jsx'
 
 const PERKS = {
   Inglés: ['Lecciones de 5 minutos con juegos', 'Audio en cada palabra y frase', 'Explicaciones en español', 'Certificado al aprobar el examen'],
@@ -17,6 +19,16 @@ export default function CourseDetail() {
   const course = bySlug(slug)
   const { user, hasAccess } = useAuth()
   const navigate = useNavigate()
+  const buyRef = useRef(null)
+  const [buyHidden, setBuyHidden] = useState(false)
+  // La barra fija aparece cuando la caja de compra sale de la pantalla
+  useEffect(() => {
+    const el = buyRef.current
+    if (!el || !('IntersectionObserver' in window)) return
+    const io = new IntersectionObserver(([e]) => setBuyHidden(!e.isIntersecting))
+    io.observe(el)
+    return () => io.disconnect()
+  })
 
   if (loading) return <p className="loading">Cargando…</p>
   if (!course) return <main className="wrap empty"><h1>No encontramos ese curso</h1><Link to="/" className="btn">Ver cursos</Link></main>
@@ -42,6 +54,8 @@ export default function CourseDetail() {
 
       <div className="wrap detail-body">
         <section>
+          {!owned && isAvailable(course) && <StartToday course={course} onStart={buy} />}
+          {owned && <StartToday course={course} />}
           {course.outline?.length ? (
             <>
               <h2>Qué vas a aprender</h2>
@@ -66,7 +80,7 @@ export default function CourseDetail() {
           )}
         </section>
 
-        <aside className="buy">
+        <aside className="buy" ref={buyRef}>
           <div className="badges static">
             {isBestseller(course.slug) && <span className="badge b-best">Más vendido</span>}
             {course.badge === 'nuevo' && <span className="badge b-new">Nuevo</span>}
@@ -79,7 +93,7 @@ export default function CourseDetail() {
           {owned ? (
             <Link to={`/aprender/${course.slug}`} className="btn btn-block">Ir al curso</Link>
           ) : isAvailable(course) ? (
-            <button className="btn btn-block" onClick={buy}>Comprar acceso</button>
+            <button className="btn btn-block btn-mango" onClick={buy}>Empezar hoy</button>
           ) : (
             <button className="btn btn-block" disabled>Próximamente</button>
           )}
@@ -97,6 +111,7 @@ export default function CourseDetail() {
           })}
         </aside>
       </div>
+      <BuyBar course={course} visible={buyHidden && !owned && isAvailable(course)} onStart={buy} />
     </main>
   )
 }

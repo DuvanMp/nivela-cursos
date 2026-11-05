@@ -5,6 +5,7 @@ import { useCatalog } from '../lib/catalog.jsx'
 import CourseCover from '../components/CourseCover.jsx'
 import { useAuth } from '../lib/auth.jsx'
 import { speak, sounds } from '../lib/media.js'
+import { StartTodayStrip } from '../components/StartToday.jsx'
 
 // Mini ejercicio real en la portada: así se ve una lección
 function HeroDemo() {
@@ -153,6 +154,8 @@ export default function Store() {
           <HeroDemo />
         </div>
       </section>
+
+      {!loading && <StartTodayStrip courses={courses} />}
 
       {packs.length > 0 && (
         <section id="paquetes" className="wrap section">

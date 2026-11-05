@@ -552,3 +552,58 @@ a.node:active { transform: translateY(6px); box-shadow: 0 1px 0 var(--cd); }
 .cover-lg > .cover-label { font-size: 1.1rem; left: 18px; bottom: 18px; padding: 10px 16px; }
 .bundle-covers .cover > .cover-label { font-size: .62rem; left: 7px; bottom: 7px; padding: 5px 8px; }
 .bundle-covers.mini .cover > .cover-label { display: none; }
+
+/* ── «Si empiezas hoy…» ─────────────────────────────────────────── */
+.st-kicker { margin: 0; font-family: var(--display); font-weight: 800; font-size: .8125rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mango); }
+@keyframes st-pulse { 0% { box-shadow: 0 0 0 0 rgba(255,176,32,.6); } 70% { box-shadow: 0 0 0 14px rgba(255,176,32,0); } 100% { box-shadow: 0 0 0 0 rgba(255,176,32,0); } }
+
+.start-today { position: relative; overflow: hidden; margin-bottom: 40px; padding: 28px 28px 24px; border-radius: 26px; color: #fff; background: radial-gradient(circle at 92% 0%, rgba(255,176,32,.35), transparent 42%), radial-gradient(circle at 0% 100%, rgba(18,184,134,.3), transparent 45%), linear-gradient(135deg, #1B1D4A, #2A1F8F); box-shadow: 0 18px 40px rgba(21,23,58,.25); }
+.start-today h2 { color: #fff; margin: 6px 0 22px; font-size: clamp(1.45rem, 3vw, 2rem); max-width: 26ch; }
+.st-line { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 14px; position: relative; }
+.st-line::before { content: ''; position: absolute; left: 10px; right: 10px; top: 9px; height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--mango), rgba(255,255,255,.25) 40%, var(--mint)); }
+.st-line li { position: relative; padding-top: 30px; display: grid; gap: 6px; align-content: start; }
+.st-line li::before { content: ''; position: absolute; top: 0; left: 0; width: 21px; height: 21px; border-radius: 50%; background: #fff; border: 5px solid #3A3FA8; box-sizing: border-box; }
+.st-line li.is-now::before { background: var(--mango); border-color: #fff; animation: st-pulse 1.8s infinite; }
+.st-line li.is-goal::before { background: var(--mint); border-color: #fff; }
+.st-when { font-family: var(--display); font-weight: 800; font-size: 1.15rem; display: grid; line-height: 1.15; }
+.st-when small { font-family: var(--body); font-weight: 600; font-size: .8125rem; color: rgba(255,255,255,.7); text-transform: none; }
+.st-line p { margin: 0; color: rgba(255,255,255,.9); font-size: .9375rem; }
+.st-foot { margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.16); display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: center; justify-content: space-between; }
+.st-foot p { margin: 0; flex: 1 1 280px; font-size: .875rem; color: rgba(255,255,255,.75); }
+
+/* Franja de la tienda */
+.st-strip { padding: 64px 0 56px; color: #fff; background: radial-gradient(circle at 10% 0%, rgba(124,58,237,.45), transparent 40%), radial-gradient(circle at 95% 100%, rgba(255,176,32,.28), transparent 40%), #15173A; }
+.sts-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 40px; align-items: end; margin-bottom: 28px; }
+.sts-head h2 { color: #fff; font-size: clamp(2rem, 4.5vw, 3rem); margin-top: 6px; }
+.sts-head > p { margin: 0; color: rgba(255,255,255,.75); }
+.sts-head .st-kicker::first-letter { text-transform: uppercase; }
+.sts-row { list-style: none; margin: 0; padding: 6px 2px 18px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 300px); gap: 18px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.3) transparent; }
+.sts-row > li { scroll-snap-align: start; }
+.sts-card { display: flex; flex-direction: column; height: 100%; background: #fff; color: var(--ink); text-decoration: none; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 28px rgba(0,0,0,.3); transition: transform .15s; }
+.sts-card:hover { transform: translateY(-4px) rotate(-.4deg); }
+.sts-body { padding: 14px 16px 16px; display: grid; gap: 10px; flex: 1; align-content: space-between; }
+.sts-body strong { font-family: var(--display); font-size: 1.05rem; line-height: 1.2; }
+.sts-date { justify-self: start; font-size: .8125rem; font-weight: 600; background: #FFF4DB; color: #8A5A00; padding: 5px 10px; border-radius: 99px; }
+.sts-date b { color: var(--ink); }
+.sts-buy { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 800; font-family: var(--display); }
+.sts-buy em { font-style: normal; color: var(--ultra); font-size: .9375rem; }
+
+/* Barra fija de compra (solo celular) */
+.buy-bar { display: none; }
+@media (max-width: 900px) {
+  .buy-bar { display: flex; position: fixed; z-index: 40; left: 10px; right: 10px; bottom: max(10px, env(safe-area-inset-bottom)); align-items: center; justify-content: space-between; gap: 12px; padding: 10px 10px 10px 18px; background: #fff; border-radius: 18px; border: 2px solid var(--line); box-shadow: 0 12px 32px rgba(21,23,58,.28); animation: bar-in .25s ease-out; }
+  .buy-bar div { display: grid; min-width: 0; }
+  .buy-bar strong { font-family: var(--display); font-size: 1.2rem; }
+  .buy-bar span { font-size: .75rem; line-height: 1.25; color: var(--muted); }
+  .buy-bar .btn { flex: none; }
+  .sts-head { grid-template-columns: 1fr; }
+}
+@keyframes bar-in { from { transform: translateY(120%); } to { transform: none; } }
+@media (max-width: 600px) {
+  .start-today { padding: 22px 18px 18px; }
+  .st-line { grid-template-columns: 1fr; gap: 18px; }
+  .st-line::before { left: 9px; right: auto; top: 10px; bottom: 10px; width: 3px; height: auto; background: linear-gradient(180deg, var(--mango), rgba(255,255,255,.25) 50%, var(--mint)); }
+  .st-line li { padding: 0 0 0 36px; }
+}
+@media (prefers-reduced-motion: reduce) { .st-line li.is-now::before, .buy-bar { animation: none; } }
+.start-today > .st-kicker { color: var(--mango); margin: 0; }
