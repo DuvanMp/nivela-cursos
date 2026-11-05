@@ -59,7 +59,11 @@ Tienda de cursos (React + Vite + Supabase) con:
 
 ## Imágenes de portada
 
-Cada curso trae su ilustración propia (`src/components/CoverArt.jsx`). Desde `/admin` puedes reemplazarla por una imagen tuya, en el curso o en el paquete:
+Cada curso trae una foto de Unsplash (licencia gratuita para uso comercial) definida en `src/data/coverPhotos.js`, con una etiqueta encima. Si la foto no carga, se muestra la ilustración propia del curso (`src/components/CoverArt.jsx`). Créditos (no son obligatorios, pero se agradecen): Toa Heftiba, Brooke Cagle, JESHOOTS.COM, Rahul Gupta, Vitaly Gariev, Rifki Kurniawan, Viralyft y Wesley Tingey.
+
+Para cambiar una foto en el código: abre la foto en unsplash.com (que no diga Unsplash+), copia la dirección `https://images.unsplash.com/photo-…` sin lo que va después del `?` y pégala en `coverPhotos.js`. Si agregas otro dominio de imágenes, súmalo a `img-src` en `vercel.json`.
+
+Desde `/admin` puedes reemplazar la portada por una imagen tuya, en el curso o en el paquete:
 
 - La página la recorta a 16:9 (1280 × 720), la comprime a WebP y la sube a la carpeta pública `covers` de Supabase Storage (solo admite JPG, PNG y WebP de hasta 1 MB; nunca SVG).
 - Solo un administrador puede subir, cambiar o borrar imágenes: lo exige la base de datos (`supabase/schema.sql`), no la página.

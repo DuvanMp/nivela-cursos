@@ -545,3 +545,10 @@ a.node:active { transform: translateY(6px); box-shadow: 0 1px 0 var(--cd); }
 .cp-actions .btn { cursor: pointer; }
 .btn.is-busy { opacity: .7; pointer-events: none; }
 @media (max-width: 640px) { .cover-picker { grid-template-columns: 1fr; } }
+
+/* Etiqueta sobre las fotos de portada */
+.cover > .cover-label { position: absolute; left: 12px; bottom: 12px; z-index: 1; transform: none; font-family: var(--display); font-weight: 800; font-size: .9rem; letter-spacing: -.01em; line-height: 1; white-space: nowrap; color: #fff; padding: 8px 12px; border-radius: 99px; background: rgba(21, 23, 58, .72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 4px 14px rgba(0,0,0,.2); text-shadow: none; }
+.cover > .cover-label.t-olive { background: rgba(47, 58, 23, .85); color: #F2E3B5; text-transform: uppercase; letter-spacing: .06em; font-size: .8rem; }
+.cover-lg > .cover-label { font-size: 1.1rem; left: 18px; bottom: 18px; padding: 10px 16px; }
+.bundle-covers .cover > .cover-label { font-size: .62rem; left: 7px; bottom: 7px; padding: 5px 8px; }
+.bundle-covers.mini .cover > .cover-label { display: none; }
