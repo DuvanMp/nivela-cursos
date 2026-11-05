@@ -20,7 +20,8 @@ export default function Login() {
     e.preventDefault()
     setError(''); setInfo('')
     if (tab === 'signup' && !form.name.trim()) return setError('Escribe tu nombre.')
-    if (form.password.length < 6) return setError('La contraseña debe tener al menos 6 caracteres.')
+    if (tab === 'signup' && (form.password.length < 8 || !/[a-zA-Z]/.test(form.password) || !/\d/.test(form.password))) return setError('La contraseña debe tener al menos 8 caracteres, con letras y números.')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return setError('Escribe un correo válido.')
     setBusy(true)
     try {
       if (tab === 'signup') {

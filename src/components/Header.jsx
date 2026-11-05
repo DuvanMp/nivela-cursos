@@ -16,7 +16,7 @@ export function Logo() {
 }
 
 export default function Header() {
-  const { user, signOut } = useAuth()
+  const { user, isAdmin, signOut } = useAuth()
   const navigate = useNavigate()
   return (
     <header className="top">
@@ -25,6 +25,8 @@ export default function Header() {
         <nav className="top-nav" aria-label="Principal">
           <NavLink to="/" end>Cursos</NavLink>
           {user && <NavLink to="/mis-cursos">Mis cursos</NavLink>}
+          <NavLink to="/afiliados">Afiliados</NavLink>
+          {isAdmin && <NavLink to="/admin">Administrar</NavLink>}
           {user ? (
             <button className="link-btn" onClick={async () => { await signOut(); navigate('/') }}>
               Salir <span className="who">({user.name})</span>

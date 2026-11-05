@@ -30,18 +30,27 @@ const contentLessons = (course) => course.units.flatMap((u) => u.lessons).filter
 
 // Repasos y examen no tienen vocabulario propio: lo toman de la unidad o del curso
 export function materialize(lesson, course) {
+  const pickDialogue = (ls) => shuffle(ls.filter((l) => l.dialogue).map((l) => l.dialogue))[0]
   if (lesson.review) {
     const ls = lesson.unit.lessons.filter((l) => l.words)
-    return { ...lesson, words: shuffle(ls.flatMap((l) => l.words)).slice(0, 6), sentences: shuffle(ls.flatMap((l) => l.sentences)).slice(0, 3) }
+    return { ...lesson, words: shuffle(ls.flatMap((l) => l.words)).slice(0, 6), sentences: shuffle(ls.flatMap((l) => l.sentences)).slice(0, 3), dialogue: pickDialogue(ls) }
   }
   if (lesson.exam) {
     const ls = contentLessons(course)
-    return { ...lesson, words: shuffle(ls.flatMap((l) => l.words)).slice(0, 10), sentences: shuffle(ls.flatMap((l) => l.sentences)).slice(0, 6) }
+    return { ...lesson, words: shuffle(ls.flatMap((l) => l.words)).slice(0, 10), sentences: shuffle(ls.flatMap((l) => l.sentences)).slice(0, 6), dialogue: pickDialogue(ls) }
   }
   return lesson
 }
 
 export function buildLesson(rawLesson, course) {
+  // Lección de lectura: contenido por bloques y luego una mini prueba
+  if (rawLesson.kind === 'read') {
+    let n = 0
+    return [
+      { id: `${rawLesson.id}-${n++}`, type: 'read', title: rawLesson.title, blocks: rawLesson.blocks },
+      ...(rawLesson.quiz || []).map((q) => ({ id: `${rawLesson.id}-${n++}`, type: 'quiz', prompt: q.q, options: shuffle(q.options), answer: q.answer, explain: q.explain })),
+    ]
+  }
   const lesson = materialize(rawLesson, course)
   const lessons = contentLessons(course)
   const poolEn = lessons.flatMap((l) => l.words.map((w) => w[0]))
@@ -77,16 +86,26 @@ export function buildLesson(rawLesson, course) {
   }
   const meaning = ([en, es]) => ({ id: id(), type: 'meaning', prompt: '¿Qué significa?', text: en, say: en, options: shuffle([es, ...distractors(poolSentEs, es, 2)]), answer: es })
   const match = (pairs) => ({ id: id(), type: 'match', prompt: 'Une cada palabra con su significado', pairs })
+  // Conversación: primero se lee completa y luego se elige qué responder
+  const poolLines = lessons.filter((l) => l.dialogue && l.dialogue !== lesson.dialogue).flatMap((l) => l.dialogue.map((x) => x[1]))
+  const dialogueRead = (lines) => ({ id: id(), type: 'dialogue', lines })
+  const reply = (lines, k) => ({
+    id: id(), type: 'reply', prompt: 'Elige la respuesta correcta', lines: lines.slice(0, k), speaker: lines[k][0],
+    options: shuffle([lines[k][1], ...distractors(poolLines, lines[k][1], 2)]), answer: lines[k][1], say: lines[k][1], meaning: lines[k][2],
+  })
+  const replies = (lines, n) => shuffle(lines.map((_, k) => k).filter((k) => k > 0)).slice(0, n).sort((a, b) => a - b).map((k) => reply(lines, k))
 
   const ex = []
   if (rawLesson.tip) ex.push({ id: id(), type: 'tip', ...rawLesson.tip })
 
   if (rawLesson.exam) {
     ex.push(choose(w[0]), listen(w[1]), build(s[0]), choose(w[2]), meaning(s[1]), match(w.slice(3, 7)), listen(w[7]), build(s[2]), typeIt(w[8]), choose(w[9]), build(s[3]), meaning(s[4]), typeIt(w[4]), build(s[5]))
+    if (lesson.dialogue) ex.splice(7, 0, ...replies(lesson.dialogue, 2))
     return ex
   }
 
   ex.push(choose(w[0]), choose(w[1]), listen(w[2]), match(w.slice(0, 4)))
+  if (lesson.dialogue) ex.push(dialogueRead(lesson.dialogue), ...replies(lesson.dialogue, 2))
   if (s[0]) ex.push(build(s[0]))
   ex.push(choose(w[4] || w[3]))
   if (s[1]) ex.push(meaning(s[1]), build(s[1]))
@@ -102,6 +121,8 @@ export function check(ex, response) {
     case 'choose':
     case 'listen':
     case 'meaning':
+    case 'reply':
+    case 'quiz':
       return response === ex.answer
     case 'build':
       return Array.isArray(response) && normalize(response.join(' ')) === normalize(ex.answer)
@@ -109,6 +130,8 @@ export function check(ex, response) {
       return normalize(ex.answer) === normalize(response || '')
     case 'match':
     case 'tip':
+    case 'dialogue':
+    case 'read':
       return true
     default:
       return false

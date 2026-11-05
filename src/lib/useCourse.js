@@ -1,38 +1,41 @@
 import { useEffect, useState } from 'react'
-import { courseBySlug } from '../data/courses.js'
 import { backend } from './backend.js'
 import { useAuth } from './auth.jsx'
+import { useCatalog } from './catalog.jsx'
 import { emptyProgress } from './progress.js'
 
-// Curso + progreso del usuario. status: 'loading' | 'no-course' | 'no-access' | 'ready' | 'error'
+// Curso + contenido + progreso del usuario.
+// status: 'loading' | 'no-course' | 'no-access' | 'no-content' | 'error' | 'ready'
 export function useCourse(slug) {
   const { user, hasAccess, loading } = useAuth()
-  const course = courseBySlug(slug)
-  const [progress, setProgress] = useState(null)
-  const [error, setError] = useState('')
+  const { bySlug, loading: catalogLoading } = useCatalog()
+  const course = bySlug(slug)
+  const [state, setState] = useState({ content: undefined, progress: null, error: '' })
 
-  const allowed = !!course?.content && hasAccess(slug)
+  const allowed = !!course && hasAccess(slug)
 
   useEffect(() => {
     if (!user || !allowed) return
     let live = true
-    backend.getProgress(user, slug)
-      .then((p) => live && setProgress(p || emptyProgress()))
-      .catch((e) => live && setError(e.message))
+    setState({ content: undefined, progress: null, error: '' })
+    Promise.all([backend.getContent(slug), backend.getProgress(user, slug)])
+      .then(([content, progress]) => live && setState({ content: content || null, progress: progress || emptyProgress(), error: '' }))
+      .catch((e) => live && setState({ content: null, progress: null, error: e.message }))
     return () => { live = false }
   }, [user?.id, slug, allowed])
 
   const save = async (next) => {
-    setProgress(next)
+    setState((s) => ({ ...s, progress: next }))
     await backend.saveProgress(user, slug, next)
   }
 
   let status = 'ready'
-  if (!course?.content) status = 'no-course'
-  else if (loading) status = 'loading'
+  if (loading || catalogLoading) status = 'loading'
+  else if (!course) status = 'no-course'
   else if (!allowed) status = 'no-access'
-  else if (error) status = 'error'
-  else if (!progress) status = 'loading'
+  else if (state.error) status = 'error'
+  else if (state.content === undefined) status = 'loading'
+  else if (!state.content) status = 'no-content'
 
-  return { course, progress, save, status, error }
+  return { course, content: state.content, progress: state.progress, save, status, error: state.error }
 }

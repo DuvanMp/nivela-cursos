@@ -1,7 +1,7 @@
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useCourse } from '../lib/useCourse.js'
 import { currentStreak, lessonState, percent } from '../lib/progress.js'
-import { allLessons } from '../data/ingles-a1.js'
+import { allLessons } from '../lib/courseUtils.js'
 
 const OFFSETS = [0, 46, 70, 46, 0, -46, -70, -46] // forma de camino serpenteante
 
@@ -17,14 +17,15 @@ export default function CoursePath() {
   const { slug } = useParams()
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const { course, progress, status, error } = useCourse(slug)
+  const { course, content, progress, status, error } = useCourse(slug)
 
   if (status === 'no-course') return <Navigate to="/" replace />
   if (status === 'no-access') return <Navigate to={`/curso/${slug}`} replace />
+  if (status === 'no-content') return <main className="wrap empty"><h1>Este curso todavía no tiene lecciones</h1><Link to="/" className="btn">Ver cursos</Link></main>
   if (status === 'error') return <main className="wrap empty"><h1>No pudimos cargar tu progreso</h1><p>{error}</p></main>
   if (status === 'loading') return <p className="loading">Cargando tu progreso…</p>
 
-  const lessons = allLessons(course.content)
+  const lessons = allLessons(content)
   const ids = lessons.map((l) => l.id)
   const pct = percent(ids, progress)
   const streak = currentStreak(progress)
@@ -48,7 +49,7 @@ export default function CoursePath() {
       </div>
 
       <div className="wrap path">
-        {course.content.units.map((u, ui) => (
+        {content.units.map((u, ui) => (
           <section key={u.id} className={`unit u-${u.color}`}>
             <header className="unit-banner">
               <span className="unit-n">Unidad {ui + 1}</span>
@@ -67,7 +68,7 @@ export default function CoursePath() {
                       <span className="node" aria-label={label}><LockIcon /></span>
                     ) : (
                       <Link to={`/aprender/${slug}/leccion/${l.id}`} className="node" aria-label={label}>
-                        {state === 'done' ? <CheckIcon /> : l.exam ? <TrophyIcon /> : l.review ? <ReviewIcon /> : <PlayIcon />}
+                        {state === 'done' ? <CheckIcon /> : l.exam ? <TrophyIcon /> : l.review ? <ReviewIcon /> : l.workout ? <BoltIcon /> : l.kind === 'read' ? <BookIcon /> : <PlayIcon />}
                       </Link>
                     )}
                     <span className="node-title">{l.title}</span>
@@ -95,4 +96,6 @@ const PlayIcon = () => <svg viewBox="0 0 24 24" width="30" height="30" aria-hidd
 const CheckIcon = () => <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
 const ReviewIcon = () => <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
 const TrophyIcon = () => <svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v4M8 20h8" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+const BookIcon = () => <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round" /></svg>
+const BoltIcon = () => <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="currentColor" /></svg>
 const LockIcon = () => <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5" fill="currentColor" /><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="2.4" /></svg>

@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom'
-import { courses } from '../data/courses.js'
+import { useCatalog } from '../lib/catalog.jsx'
 import CourseCover from '../components/CourseCover.jsx'
 import { useAuth } from '../lib/auth.jsx'
 
 export default function MyCourses() {
   const { user, purchases } = useAuth()
+  const { courses } = useCatalog()
   const mine = courses.filter((c) => purchases.includes(c.slug))
   return (
     <main className="wrap section">
+      {new URLSearchParams(window.location.search).get('bienvenida') && <p className="welcome">Acceso activado. ¡Empecemos!</p>}
       <h1>Hola, {user.name}</h1>
       {mine.length ? (
         <ul className="grid">
@@ -25,8 +27,8 @@ export default function MyCourses() {
         </ul>
       ) : (
         <div className="empty-box">
-          <p>Todavía no tienes cursos. Empieza con Inglés A1: lecciones cortas de 5 minutos.</p>
-          <Link to="/curso/ingles-a1" className="btn">Ver Inglés A1</Link>
+          <p>Todavía no tienes cursos. Mira el catálogo: hay inglés, entrenamiento, ventas, inteligencia artificial y negocios digitales.</p>
+          <Link to="/#cursos" className="btn">Ver cursos</Link>
         </div>
       )}
     </main>

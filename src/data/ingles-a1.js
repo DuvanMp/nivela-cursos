@@ -237,8 +237,5 @@ units.push({
   lessons: [{ id: 'examen-final', title: 'Examen final A1', exam: true }],
 })
 
-export const inglesA1 = { id: 'ingles-a1', units }
+export const inglesA1 = { id: 'ingles-a1', certNote: 'con nivel de referencia A1 del Marco Común Europeo', units }
 
-export const EXAM_MAX_MISTAKES = 3
-
-export const allLessons = (course) => course.units.flatMap((u) => u.lessons.map((l) => ({ ...l, unit: u })))

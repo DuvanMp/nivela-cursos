@@ -3,23 +3,28 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useCourse } from '../lib/useCourse.js'
 import { buildLesson, check, shuffle } from '../lib/exercises.js'
 import { completeLesson, lessonState, starsFor, xpFor } from '../lib/progress.js'
-import { allLessons, EXAM_MAX_MISTAKES } from '../data/ingles-a1.js'
+import { allLessons, EXAM_MAX_MISTAKES } from '../lib/courseUtils.js'
 import { canSpeak, sounds, speak } from '../lib/media.js'
+import Blocks from '../components/Blocks.jsx'
+
+const PASSIVE = ['tip', 'read', 'dialogue']
 
 export default function Lesson() {
   const { slug, lessonId } = useParams()
-  const { course, progress, save, status } = useCourse(slug)
+  const { content, progress, save, status } = useCourse(slug)
 
   if (status === 'no-course') return <Navigate to="/" replace />
   if (status === 'no-access') return <Navigate to={`/curso/${slug}`} replace />
+  if (status === 'no-content') return <Navigate to={`/aprender/${slug}`} replace />
+  if (status === 'error') return <main className="wrap empty"><h1>No pudimos cargar la lección</h1><Link to={`/aprender/${slug}`} className="btn">Volver</Link></main>
   if (status !== 'ready') return <p className="loading">Cargando lección…</p>
 
-  const lessons = allLessons(course.content)
+  const lessons = allLessons(content)
   const lesson = lessons.find((l) => l.id === lessonId)
   if (!lesson || lessonState(lessons.map((l) => l.id), progress, lessonId) === 'locked') {
     return <Navigate to={`/aprender/${slug}`} replace />
   }
-  return <LessonPlayer key={lessonId} slug={slug} course={course.content} lesson={lesson} progress={progress} save={save} />
+  return <LessonPlayer key={lessonId} slug={slug} course={content} lesson={lesson} progress={progress} save={save} />
 }
 
 function LessonPlayer({ slug, course, lesson, progress, save }) {
@@ -50,7 +55,7 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
     const base = ex.id.replace(/-r$/, '')
     let q = queue
     // Un error vuelve a aparecer al final, una sola vez
-    if (result === 'wrong' && !lesson.exam && !retried.has(base)) {
+    if (result === 'wrong' && !lesson.exam && ex.type !== 'quiz' && !retried.has(base)) {
       retried.add(base)
       q = [...queue, { ...ex, id: `${base}-r`, options: ex.options && shuffle(ex.options), bank: ex.bank && shuffle(ex.bank) }]
       setQueue(q)
@@ -80,7 +85,8 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
   const keyRef = useRef()
   keyRef.current = (e) => {
     if (finished) return
-    if (e.key === 'Enter') { e.preventDefault(); result || ex.type === 'tip' ? next() : doCheck(); return }
+    if (e.key === 'Enter') { if (e.target.classList?.contains('btn-check') || e.target.tagName === 'SUMMARY' || e.target.closest?.('.b-prompt, .b-check, .speak')) return; e.preventDefault(); result || PASSIVE.includes(ex.type) ? next() : doCheck(); return }
+    if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return
     if (e.target.tagName === 'INPUT' || result) return
     const n = Number(e.key)
     if (ex?.options && n >= 1 && n <= ex.options.length) setResponse(ex.options[n - 1])
@@ -131,7 +137,7 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
   const pct = Math.round((done / original.length) * 100)
 
   return (
-    <main className={`lesson lesson-${ex.type}`}>
+    <main className={`lesson lesson-${ex.type} ${lesson.kind === 'read' ? 'lesson-reading' : ''}`}>
       <div className="lesson-top">
         <Link to={`/aprender/${slug}`} className="close" aria-label="Salir de la lección">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" /></svg>
@@ -155,10 +161,14 @@ function LessonPlayer({ slug, course, lesson, progress, save }) {
                   <span>{ex.answer}</span>
                 </>
               )}
+              {ex.meaning && <span className="fb-extra">«{ex.meaning}»</span>}
+              {ex.explain && <span className="fb-extra">{ex.explain}</span>}
             </div>
           )}
-          {ex.type === 'tip' ? (
-            <button className="btn btn-check" onClick={next} autoFocus>Empezar</button>
+          {PASSIVE.includes(ex.type) ? (
+            <button className="btn btn-check" onClick={next} autoFocus>
+              {ex.type === 'tip' ? 'Empezar' : ex.type === 'read' ? (queue.length > 1 ? 'Hacer la prueba' : 'Terminar lección') : 'Continuar'}
+            </button>
           ) : result ? (
             <button className="btn btn-check" onClick={next} autoFocus>Continuar</button>
           ) : ex.type !== 'match' ? (
@@ -219,6 +229,37 @@ function Exercise({ ex, value, setValue, locked, onMatched }) {
           </ul>
         </div>
       )
+    case 'read':
+      return (
+        <article className="reading">
+          <h1 className="q">{ex.title}</h1>
+          <Blocks blocks={ex.blocks} />
+        </article>
+      )
+    case 'quiz':
+      return (
+        <>
+          <span className="tip-label">Comprueba lo aprendido</span>
+          <h1 className="q">{ex.prompt}</h1>
+          <Options ex={ex} value={value} setValue={setValue} locked={locked} />
+        </>
+      )
+    case 'dialogue':
+      return (
+        <>
+          <span className="tip-label">Conversación</span>
+          <h1 className="q">Lee y escucha la conversación</h1>
+          <Conversation lines={ex.lines} showMeaning />
+        </>
+      )
+    case 'reply':
+      return (
+        <>
+          <h1 className="q">{ex.prompt}</h1>
+          <Conversation lines={ex.lines} pending={ex.speaker} />
+          <Options ex={ex} value={value} setValue={setValue} locked={locked} />
+        </>
+      )
     case 'choose':
       return (
         <>
@@ -269,6 +310,29 @@ function Exercise({ ex, value, setValue, locked, onMatched }) {
     default:
       return null
   }
+}
+
+// Conversación tipo chat: A a la izquierda, B a la derecha
+function Conversation({ lines, showMeaning, pending }) {
+  return (
+    <div className="convo">
+      {lines.map(([who, en, es], i) => (
+        <div key={i} className={`c-line ${who === 'B' ? 'right' : 'left'}`}>
+          <span className="c-who" aria-hidden="true">{who}</span>
+          <div className="c-bubble">
+            <p><SpeakButton text={en} /> <span>{en}</span></p>
+            {showMeaning && <em>{es}</em>}
+          </div>
+        </div>
+      ))}
+      {pending && (
+        <div className={`c-line ${pending === 'B' ? 'right' : 'left'}`}>
+          <span className="c-who" aria-hidden="true">{pending}</span>
+          <div className="c-bubble pending" aria-label="Respuesta por elegir">…</div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 // Armar la frase tocando palabras del banco

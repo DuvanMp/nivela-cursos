@@ -10,6 +10,9 @@ import CoursePath from './pages/CoursePath.jsx'
 import Lesson from './pages/Lesson.jsx'
 import MyCourses from './pages/MyCourses.jsx'
 import Certificate from './pages/Certificate.jsx'
+import Admin from './pages/Admin.jsx'
+import BundleDetail from './pages/BundleDetail.jsx'
+import Affiliates from './pages/Affiliates.jsx'
 import { useAuth } from './lib/auth.jsx'
 
 // Pide sesión iniciada; si no, manda a /entrar y vuelve después
@@ -18,6 +21,14 @@ export function RequireUser({ children }) {
   const loc = useLocation()
   if (loading) return <p className="loading">Cargando…</p>
   if (!user) return <Navigate to={`/entrar?next=${encodeURIComponent(loc.pathname)}`} replace />
+  return children
+}
+
+// Solo administradores (la base de datos también lo verifica)
+export function RequireAdmin({ children }) {
+  const { isAdmin, loading } = useAuth()
+  if (loading) return <p className="loading">Cargando…</p>
+  if (!isAdmin) return <Navigate to="/" replace />
   return children
 }
 
@@ -31,12 +42,16 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Store />} />
         <Route path="/curso/:slug" element={<CourseDetail />} />
+        <Route path="/paquete/:slug" element={<BundleDetail />} />
+        <Route path="/afiliados" element={<Affiliates />} />
         <Route path="/entrar" element={<Login />} />
+        <Route path="/pagar/paquete/:slug" element={<RequireUser><Checkout bundle /></RequireUser>} />
         <Route path="/pagar/:slug" element={<RequireUser><Checkout /></RequireUser>} />
         <Route path="/mis-cursos" element={<RequireUser><MyCourses /></RequireUser>} />
         <Route path="/aprender/:slug" element={<RequireUser><CoursePath /></RequireUser>} />
         <Route path="/aprender/:slug/leccion/:lessonId" element={<RequireUser><Lesson /></RequireUser>} />
         <Route path="/aprender/:slug/certificado" element={<RequireUser><Certificate /></RequireUser>} />
+        <Route path="/admin" element={<RequireUser><RequireAdmin><Admin /></RequireAdmin></RequireUser>} />
         <Route path="*" element={<main className="wrap empty"><h1>Esta página no existe</h1><a className="btn" href="/">Ver cursos</a></main>} />
       </Routes>
       {!inLesson && <Footer />}
