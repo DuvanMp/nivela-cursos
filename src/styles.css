@@ -730,3 +730,13 @@ option { background: var(--surface); color: var(--text); }
 .bundle-covers { background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--c, var(--ultra)) 55%, transparent), transparent 70%), #10123A; }
 .bundle-covers.big { background: rgba(255,255,255,.06); }
 .bundle-covers.mini { background: none; }
+
+/* Logo */
+.logo { gap: 10px; font-size: 1.6rem; letter-spacing: -0.045em; }
+.logo-mark { flex: none; filter: drop-shadow(0 4px 12px rgba(124,108,255,.45)); transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+.logo:hover .logo-mark { transform: translateY(-2px) rotate(-4deg); }
+.logo-word { display: inline-flex; align-items: baseline; }
+.logo-i { position: relative; display: inline-block; }
+.logo-i svg { position: absolute; left: 50%; top: .2em; width: .4em; height: .4em; transform: translateX(-50%); transition: transform .4s cubic-bezier(.2,.8,.2,1); }
+.logo:hover .logo-i svg { transform: translateX(-50%) rotate(90deg) scale(1.15); }
+@media (prefers-reduced-motion: reduce) { .logo-mark, .logo-i svg { transition: none; } }

@@ -1,16 +1,25 @@
+import { useId } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 
+// Logo: doble chevrón «subir de nivel» con brillo naranja, y la «i» de nivela con una chispa
 export function Logo() {
+  const id = 'lg' + useId().replace(/[^a-zA-Z0-9]/g, '')
   return (
     <Link to="/" className="logo" aria-label="Nivela, inicio">
-      <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true">
-        <rect width="64" height="64" rx="16" fill="var(--ultra)" />
-        <rect x="14" y="36" width="10" height="14" rx="3" fill="var(--mango)" />
-        <rect x="27" y="26" width="10" height="24" rx="3" fill="#fff" />
-        <rect x="40" y="14" width="10" height="36" rx="3" fill="var(--mint)" />
+      <svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true" className="logo-mark">
+        <defs>
+          <linearGradient id={`${id}a`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#7C6CFF" /><stop offset="1" stopColor="#2D3BE3" /></linearGradient>
+          <radialGradient id={`${id}b`} cx=".85" cy=".1" r=".7"><stop offset="0" stopColor="#FFB020" stopOpacity=".75" /><stop offset="1" stopColor="#FFB020" stopOpacity="0" /></radialGradient>
+        </defs>
+        <rect width="64" height="64" rx="19" fill={`url(#${id}a)`} />
+        <rect width="64" height="64" rx="19" fill={`url(#${id}b)`} />
+        <path d="M18 46l14-12 14 12" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M18 31l14-12 14 12" fill="none" stroke="#FFD27A" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <span>nivela</span>
+      <span className="logo-word" aria-hidden="true">
+        n<span className="logo-i">ı<svg viewBox="0 0 20 20"><path d="M10 0c1 5.5 3.5 8 10 10-6.5 2-9 4.5-10 10-1-5.5-3.5-8-10-10C6.5 8 9 5.5 10 0z" fill="#FFB020" /></svg></span>vela
+      </span>
     </Link>
   )
 }
