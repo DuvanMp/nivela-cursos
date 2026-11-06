@@ -842,3 +842,8 @@ option { background: var(--surface); color: var(--text); }
 }
 @keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } }
 @media (prefers-reduced-motion: reduce) { .menu-open .top-nav, .menu-btn span { animation: none; transition: none; } }
+
+/* Videos propios */
+.b-video video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 18px; background: #000; box-shadow: 0 16px 40px rgba(0,0,0,.4); }
+.wk-clip { display: block; width: 100%; max-width: 640px; aspect-ratio: 16 / 9; margin: 10px 0 12px; border-radius: 14px; background: #000; }
+.wk-amount { color: #6EE7B7; }

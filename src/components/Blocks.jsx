@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { EJERCICIOS } from '../data/ejercicios.js'
 import ExerciseFigure from './ExerciseFigure.jsx'
+import { CourseContext, exerciseClip } from '../data/lessonVideos.js'
 
 // Contenido de las lecciones de lectura: texto, pasos, listas, avisos,
 // conversaciones de ejemplo, plantillas para copiar, rutinas y video.
@@ -49,6 +50,13 @@ function Block({ b }) {
     case 'workout':
       return <Workout b={b} />
     case 'video':
+      if (b.src) {
+        return (
+          <section className="b-video">
+            <video src={b.src} poster={b.poster} controls playsInline preload="metadata" aria-label={b.title || 'Video de la lección'} />
+          </section>
+        )
+      }
       return b.url ? (
         <section className="b-video">
           <iframe src={b.url} title={b.title || 'Video de la lección'} loading="lazy" allow="encrypted-media; picture-in-picture" allowFullScreen />
@@ -108,17 +116,27 @@ function Workout({ b }) {
               <div className="wk-info">
                 <strong>{e.name}</strong>
                 <span className="wk-amount">{it.amount}</span>
-                <details>
-                  <summary>Cómo se hace</summary>
-                  <ol>{e.how.map((h, k) => <li key={k}>{h}</li>)}</ol>
-                  <p className="wk-material">Material: {e.material}</p>
-                  <p className="wk-safety">{e.safety}</p>
-                </details>
+                <HowTo ex={it.ex} e={e} />
               </div>
             </li>
           )
         })}
       </ol>
     </section>
+  )
+}
+
+// «Cómo se hace»: al abrirlo carga el video de la técnica (se repite solo, sin sonido)
+function HowTo({ ex, e }) {
+  const [open, setOpen] = useState(false)
+  const clip = exerciseClip(ex, useContext(CourseContext))
+  return (
+    <details onToggle={(ev) => setOpen(ev.currentTarget.open)}>
+      <summary>{clip ? 'Cómo se hace · ver video' : 'Cómo se hace'}</summary>
+      {open && clip && <video className="wk-clip" src={clip.src} poster={clip.poster} autoPlay muted loop playsInline aria-label={`Video: ${e.name}`} />}
+      <ol>{e.how.map((h, k) => <li key={k}>{h}</li>)}</ol>
+      <p className="wk-material">Material: {e.material}</p>
+      <p className="wk-safety">{e.safety}</p>
+    </details>
   )
 }

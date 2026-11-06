@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useCourse } from '../lib/useCourse.js'
 import { buildLesson, check, shuffle } from '../lib/exercises.js'
+import { CourseContext, withLessonVideo } from '../data/lessonVideos.js'
 import { completeLesson, lessonState, starsFor, xpFor } from '../lib/progress.js'
 import { allLessons, EXAM_MAX_MISTAKES } from '../lib/courseUtils.js'
 import { canSpeak, sounds, speak } from '../lib/media.js'
@@ -24,12 +25,16 @@ export default function Lesson() {
   if (!lesson || lessonState(lessons.map((l) => l.id), progress, lessonId) === 'locked') {
     return <Navigate to={`/aprender/${slug}`} replace />
   }
-  return <LessonPlayer key={lessonId} slug={slug} course={content} lesson={lesson} progress={progress} save={save} />
+  return (
+    <CourseContext.Provider value={slug}>
+      <LessonPlayer key={lessonId} slug={slug} course={content} lesson={lesson} progress={progress} save={save} />
+    </CourseContext.Provider>
+  )
 }
 
 function LessonPlayer({ slug, course, lesson, progress, save }) {
   const navigate = useNavigate()
-  const original = useMemo(() => buildLesson(lesson, course), [lesson, course])
+  const original = useMemo(() => withLessonVideo(buildLesson(lesson, course), slug, lesson.id), [lesson, course, slug])
   const [queue, setQueue] = useState(original)
   const [i, setI] = useState(0)
   const [response, setResponse] = useState(null)

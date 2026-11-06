@@ -70,6 +70,15 @@ Desde `/admin` puedes reemplazar la portada por una imagen tuya, en el curso o e
 - Si actualizas una instalación que ya tenías, **vuelve a ejecutar `supabase/schema.sql`** en el SQL Editor (se puede repetir sin riesgo): agrega la columna `image` y crea la carpeta con sus reglas.
 - Los cursos nuevos sin imagen ni ilustración usan una portada de color con el «Texto de portada».
 
+## Videos del Reto Militar
+
+En `public/videos/reto/` están los videos propios del reto (sin sonido, con textos en pantalla):
+
+- `instrucciones-hombres.mp4` e `instrucciones-mujeres.mp4` (unos 54 s): aparecen al inicio de «Instrucciones de la misión».
+- `ej-<ejercicio>.mp4` (con un hombre) y `ej-<ejercicio>-m.mp4` (con una mujer), 16 de cada uno, de 6,6 s: la técnica de cada ejercicio en un cuarto, con los músculos que trabaja resaltados en rojo, los pasos y el aviso de seguridad. Se ven al tocar «Cómo se hace» y se repiten solos; cada versión del reto muestra los suyos.
+
+Qué video va en cada lección se define en `src/data/lessonVideos.js`, así que no hay que cambiar la base de datos. Si algún día grabas videos reales, reemplaza el archivo con el mismo nombre (MP4 H.264) o cambia la ruta en ese archivo.
+
 ## Seguridad
 
 - **Row Level Security en todas las tablas** (`supabase/schema.sql`):
